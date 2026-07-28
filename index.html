@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECOCO 宜可可｜庫存與出貨即時儀表板</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#FF5000;
+    --blue:#060E9F;
+    --yellow:#FFCE00;
+    --lightblue:#8EB8C9;
+    --beige:#FAE0B8;
+    --darkblue:#0076A9;
+    --bg:#FFFBF3;
+    --card:#FFFFFF;
+    --text:#1A1A2E;
+    --muted:#6b7280;
+    --danger:#E0393E;
+    --ok:#1B8A5A;
+    --warn:#C97A00;
+    --radius:16px;
+    --shadow: 0 2px 10px rgba(6,14,159,0.06), 0 1px 2px rgba(6,14,159,0.04);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Noto Sans TC', sans-serif;
+    font-weight:500;
+    background:var(--bg);
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{width:95%;max-width:1900px;margin:0 auto;padding:20px 0 60px;}
+
+  .header-row{display:flex;align-items:stretch;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+
+  .topbar{
+    display:flex;align-items:center;gap:14px;flex:1 1 auto;
+    padding:12px 20px;
+    background:var(--blue);
+    border-radius:14px;
+    color:#fff;
+    box-shadow:var(--shadow);
+  }
+  .brand-mark{
+    width:38px;height:38px;border-radius:10px;
+    background:var(--orange);
+    display:flex;align-items:center;justify-content:center;
+    font-weight:900;font-size:16px;color:#fff;flex-shrink:0;
+  }
+  .brand-text h1{font-size:16px;font-weight:900;margin:0;letter-spacing:.3px;}
+  .brand-text p{font-size:11px;font-weight:500;margin:1px 0 0;opacity:.85;}
+
+  .top-right{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:6px;min-width:230px;flex-shrink:0;}
+  .updated-at{font-size:11px;font-weight:500;color:var(--muted);text-align:right;}
+  .updated-at b{font-weight:700;color:var(--darkblue);}
+
+  .login-box{
+    background:#fff;border:1.5px solid var(--beige);border-radius:12px;padding:10px 12px;
+    width:100%;max-width:270px;box-shadow:var(--shadow);
+  }
+  .login-row{display:flex;gap:6px;margin-bottom:6px;}
+  .login-row input{
+    flex:1;padding:7px 9px;border-radius:8px;border:1.5px solid #E5E1D8;
+    font-family:inherit;font-size:12px;font-weight:500;
+  }
+  .login-actions{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .btn-login{
+    background:var(--orange);color:#fff;border:none;border-radius:8px;
+    padding:7px 14px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;
+  }
+  .forgot-link{color:var(--darkblue);font-size:11px;font-weight:700;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;}
+  .user-chip{display:flex;align-items:center;gap:10px;background:#fff;border:1.5px solid var(--beige);border-radius:12px;padding:8px 14px;box-shadow:var(--shadow);}
+  .user-chip .name{font-weight:900;font-size:14px;color:var(--blue);}
+  .user-chip .role{font-size:10px;background:var(--yellow);color:var(--blue);padding:2px 8px;border-radius:20px;font-weight:900;}
+  .btn-logout{background:transparent;border:1.5px solid var(--lightblue);color:var(--darkblue);border-radius:8px;padding:6px 12px;font-family:inherit;font-weight:700;font-size:11px;cursor:pointer;}
+
+  .tabs{
+    display:flex;gap:8px;margin:18px 0 20px;
+    background:#fff;border-radius:14px;padding:6px;
+    box-shadow:var(--shadow);flex-wrap:wrap;
+  }
+  .tab-btn{
+    flex:1;min-width:110px;
+    border:none;background:transparent;
+    padding:12px 10px;border-radius:10px;
+    font-family:inherit;font-weight:700;font-size:14px;
+    color:var(--darkblue);cursor:pointer;
+    transition:.15s ease;
+  }
+  .tab-btn:hover{background:var(--beige);}
+  .tab-btn.active{background:var(--orange);color:#fff;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  .section-title{
+    font-weight:900;font-size:16px;color:var(--blue);
+    margin:28px 0 12px;display:flex;align-items:center;gap:8px;
+  }
+  .section-title:first-child{margin-top:0;}
+  .section-title .dot{width:8px;height:8px;border-radius:50%;background:var(--orange);}
+  .section-title.mat .dot{background:var(--darkblue);}
+
+  .card{
+    background:var(--card);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px 20px;
+  }
+
+  .overview-row{margin-bottom:8px;}
+  .overview-row .row-label{
+    font-weight:900;font-size:13px;color:#fff;background:var(--orange);
+    display:inline-block;padding:4px 14px;border-radius:20px;margin-bottom:10px;
+  }
+  .overview-row.mat .row-label{background:var(--darkblue);}
+
+  .grid-summary{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:12px;
+  }
+  .stat-card{
+    background:var(--card);border-radius:14px;padding:16px 18px;
+    box-shadow:var(--shadow);border-left:6px solid var(--orange);
+  }
+  .stat-card.blue{border-left-color:var(--darkblue);}
+  .stat-card.yellow{border-left-color:var(--yellow);}
+  .stat-card.danger{border-left-color:var(--danger);}
+  .stat-label{font-size:12px;color:var(--muted);font-weight:700;}
+  .stat-value{font-size:24px;font-weight:900;color:var(--blue);margin-top:4px;}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  .filter-card{margin-bottom:20px;}
+
+  .stock-search{
+    max-width:320px;margin-bottom:12px;
+  }
+
+  .stock-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:12px;margin-top:4px;
+  }
+  .stock-card{
+    background:#fff;border-radius:14px;padding:14px 16px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .stock-card .badge{
+    position:absolute;top:12px;right:12px;
+    font-size:11px;font-weight:900;padding:3px 9px;border-radius:20px;color:#fff;
+  }
+  .badge.ok{background:var(--ok);}
+  .badge.warn{background:var(--warn);}
+  .badge.danger{background:var(--danger);}
+  .stock-card h3{font-size:15px;font-weight:900;margin:0 0 8px;color:var(--text);padding-right:60px;}
+  .stock-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;}
+  .stock-row b{color:var(--text);font-weight:700;}
+  .bar-track{height:8px;background:#F0EFEA;border-radius:6px;margin-top:10px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:6px;background:var(--darkblue);}
+  .bar-fill.warn{background:var(--warn);}
+  .bar-fill.danger{background:var(--danger);}
+
+  .form-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:14px;align-items:end;
+  }
+  label{display:block;font-size:12px;font-weight:700;color:var(--darkblue);margin-bottom:6px;}
+  input,select,textarea{
+    width:100%;padding:10px 12px;border-radius:10px;
+    border:1.5px solid #E5E1D8;font-family:inherit;font-size:14px;font-weight:500;
+    background:#FFFEFB;color:var(--text);
+  }
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--orange);}
+  .btn{
+    border:none;border-radius:10px;padding:11px 20px;
+    font-family:inherit;font-weight:700;font-size:14px;cursor:pointer;
+    background:var(--orange);color:#fff;transition:.15s;
+  }
+  .btn:hover{filter:brightness(0.94);}
+  .btn.secondary{background:var(--lightblue);color:var(--blue);}
+  .btn:disabled{opacity:.4;cursor:not-allowed;}
+  .btn-outline{
+    border:1.5px solid var(--lightblue);background:#fff;color:var(--darkblue);
+    border-radius:10px;padding:8px 14px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;
+  }
+  .btn-outline:hover{background:var(--beige);}
+  .btn-outline.subtle{border-color:#E5E1D8;color:var(--muted);}
+  .toolbar-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+  .preview-line{
+    margin-top:14px;padding:12px 14px;background:var(--beige);
+    border-radius:10px;font-size:13px;font-weight:700;color:var(--blue);
+  }
+  .hint-line{
+    margin-top:8px;font-size:11px;color:var(--muted);font-weight:500;
+  }
+  .mat-picker-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .mat-picker-row select{flex:2;min-width:140px;}
+  .mat-picker-row input{flex:1;min-width:90px;}
+  .mat-chip-list{display:flex;flex-wrap:wrap;gap:8px;}
+  .mat-chip{
+    background:var(--lightblue);color:var(--blue);font-size:12px;font-weight:700;
+    padding:5px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:6px;
+  }
+  .mat-chip button{background:none;border:none;color:var(--blue);cursor:pointer;font-weight:900;font-size:13px;padding:0;}
+
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px;}
+  th{
+    text-align:left;font-weight:700;color:var(--darkblue);
+    padding:10px 10px;border-bottom:2px solid var(--beige);
+    background:#FFFCF6;position:sticky;top:0;
+  }
+  td{padding:9px 10px;border-bottom:1px solid #F1EFE8;font-weight:500;}
+  tr:hover td{background:#FFFAF0;}
+  .table-wrap{max-height:380px;overflow:auto;border-radius:10px;}
+  .row-actions button{
+    border:none;background:transparent;cursor:pointer;color:var(--muted);
+    font-size:12px;font-weight:700;margin-right:8px;
+  }
+  .row-actions button:hover{color:var(--darkblue);}
+  .row-actions button.delBtn:hover{color:var(--danger);}
+  .row-actions button:disabled{opacity:.3;cursor:not-allowed;}
+  .empty-hint{color:var(--muted);font-size:13px;padding:20px 4px;text-align:center;}
+  .tag{font-size:11px;font-weight:900;padding:2px 8px;border-radius:20px;color:#fff;}
+  .tag.in{background:var(--ok);}
+  .tag.use{background:var(--darkblue);}
+  .tag.ship{background:var(--ok);}
+  .tag.return{background:var(--warn);}
+  .edit-cell input,.edit-cell select{padding:6px 8px;font-size:12px;}
+  .remark-text{color:var(--muted);font-size:12px;max-width:160px;white-space:normal;}
+  .who-when{font-size:11px;color:var(--muted);line-height:1.5;}
+  .who-when b{color:var(--text);font-weight:700;}
+  .gift-text{color:var(--darkblue);font-size:12px;max-width:180px;white-space:normal;}
+  .items-text{color:var(--text);font-size:12px;max-width:200px;white-space:normal;}
+
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:860px){.two-col{grid-template-columns:1fr;}}
+
+  .pager{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:12px;flex-wrap:wrap;}
+  .pager-btn{
+    border:1.5px solid var(--lightblue);background:#fff;color:var(--darkblue);
+    border-radius:8px;padding:6px 12px;font-family:inherit;font-weight:700;font-size:12px;cursor:pointer;
+  }
+  .pager-btn:disabled{opacity:.35;cursor:not-allowed;}
+  .pager-info{font-size:12px;color:var(--muted);font-weight:700;}
+  .pager-size{width:auto;padding:6px 8px;font-size:12px;border-radius:8px;}
+
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--blue);color:#fff;padding:12px 22px;border-radius:30px;
+    font-weight:700;font-size:13px;box-shadow:0 6px 20px rgba(0,0,0,.2);
+    opacity:0;pointer-events:none;transition:.25s;z-index:999;
+    max-width:80vw;text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px);}
+  .toast.warn-toast{background:var(--danger);}
+
+  .notice{
+    font-size:12px;color:var(--muted);background:var(--beige);
+    padding:10px 14px;border-radius:10px;margin:16px 0;font-weight:500;
+  }
+  .footer-tip{font-size:11px;color:var(--muted);text-align:center;margin-top:30px;}
+
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(6,14,159,0.4);
+    display:flex;align-items:center;justify-content:center;z-index:1000;padding:16px;
+    overflow-y:auto;
+  }
+  .modal-box{
+    background:#fff;border-radius:16px;padding:22px;width:100%;max-width:460px;
+    box-shadow:0 12px 40px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto;
+  }
+  .modal-box h3{margin:0 0 8px;color:var(--blue);font-size:16px;font-weight:900;}
+  .modal-box p{margin:0 0 14px;font-size:12px;color:var(--muted);line-height:1.5;}
+  .modal-form{display:flex;flex-direction:column;gap:12px;}
+  .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="header-row">
+    <div class="topbar">
+      <div class="brand-mark">宜</div>
+      <div class="brand-text">
+        <h1>ECOCO 宜可可循環經濟</h1>
+        <p>出貨 × 包材 × 庫存｜即時儀表板</p>
+      </div>
+    </div>
+    <div class="top-right">
+      <div class="updated-at">最後更新　<b id="lastUpdated">尚無資料</b></div>
+      <div id="authArea"></div>
+    </div>
+  </div>
+
+  <div class="notice">此表單資料為<b>共用資料</b>，所有同事都能檢視最新出貨與庫存狀態；需要<b>登入</b>才能新增／編輯紀錄，<b>刪除</b>僅限管理者操作。商品若<b>退貨</b>不會影響庫存數量，但相關包材／運費成本仍請記錄。所有時間與區間篩選均以<b>台灣時間（GMT+8）</b>為準。</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard">📊 儀表板</button>
+    <button class="tab-btn" data-tab="entry">📝 每日填寫</button>
+    <button class="tab-btn" data-tab="products">📦 商品設定</button>
+    <button class="tab-btn" data-tab="materials">🧾 包材設定</button>
+  </div>
+
+  <!-- ============ DASHBOARD ============ -->
+  <div class="view active" id="view-dashboard">
+
+    <div class="card filter-card">
+      <div class="section-title" style="margin-top:0;"><span class="dot"></span>篩選資料區間（台灣時間 GMT+8）</div>
+      <div class="form-grid">
+        <div>
+          <label>快速選擇</label>
+          <select id="rangeMode">
+            <option value="today">今日</option>
+            <option value="week" selected>本週（日～六）</option>
+            <option value="month">本月</option>
+            <option value="all">全部區間</option>
+            <option value="custom">自訂區間</option>
+          </select>
+        </div>
+        <div id="customStartWrap" style="display:none;"><label>起始日期</label><input type="date" id="rangeStart"></div>
+        <div id="customEndWrap" style="display:none;"><label>結束日期</label><input type="date" id="rangeEnd"></div>
+        <div><button class="btn" id="btnApplyRange">套用篩選</button></div>
+      </div>
+    </div>
+
+    <div class="overview-row">
+      <div class="row-label">📦 商品出貨總覽</div>
+      <div class="grid-summary" id="summaryProduct"></div>
+    </div>
+    <div class="overview-row mat">
+      <div class="row-label">🧾 包材使用總覽</div>
+      <div class="grid-summary" id="summaryMaterial"></div>
+    </div>
+
+    <div class="section-title"><span class="dot"></span>商品即時庫存</div>
+    <div class="card">
+      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 搜尋商品名稱關鍵字">
+      <div id="stockGrid" class="stock-grid"></div>
+      <div id="pagerStockProducts"></div>
+    </div>
+
+    <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
+    <div class="card">
+      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 搜尋包材名稱關鍵字">
+      <div id="matStockGrid" class="stock-grid"></div>
+      <div id="pagerStockMaterials"></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="section-title"><span class="dot"></span>出貨紀錄（依篩選區間）</div>
+        <div class="card">
+          <div class="table-wrap"><table id="shipmentTableDash"><thead>
+            <tr><th>日期</th><th>商品</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th></tr>
+          </thead><tbody></tbody></table></div>
+          <div id="pagerShipDash"></div>
+        </div>
+      </div>
+      <div>
+        <div class="section-title mat"><span class="dot"></span>包材紀錄（依篩選區間）</div>
+        <div class="card">
+          <div class="table-wrap"><table id="materialTableDash"><thead>
+            <tr><th>日期</th><th>包材明細</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th></tr>
+          </thead><tbody></tbody></table></div>
+          <div id="pagerMatDash"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ENTRY ============ -->
+  <div class="view" id="view-entry">
+    <div class="section-title"><span class="dot"></span>填寫出貨量</div>
+    <div class="card">
+      <div class="toolbar-row">
+        <button class="btn-outline" id="btnExportShip">⬇ 匯出出貨紀錄 CSV</button>
+        <button class="btn-outline" id="btnImportShipTrigger">⬆ 匯入出貨紀錄 CSV</button>
+        <button class="btn-outline subtle" id="btnTemplateShip">📄 下載匯入範本</button>
+        <input type="file" accept=".csv" id="importShipFile" style="display:none;">
+      </div>
+      <div class="form-grid">
+        <div><label>日期</label><input type="date" id="shipDate"></div>
+        <div><label>商品</label><select id="shipProduct"></select></div>
+        <div><label>類型</label>
+          <select id="shipType">
+            <option value="ship">出貨（扣減庫存）</option>
+            <option value="return">退貨（不影響庫存）</option>
+          </select>
+        </div>
+        <div><label>數量</label><input type="number" min="0" step="1" id="shipQty" placeholder="輸入數量"></div>
+        <div><label>備註</label><input type="text" id="shipRemark" placeholder="選填，例如客戶／單號"></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label>贈品品項（選填，會與本次出貨合併為同一筆紀錄，並一併扣除庫存；贈品本身也是商品，可加入多筆）</label>
+        <div class="mat-picker-row">
+          <select id="giftProductPicker"></select>
+          <input type="number" min="1" step="1" id="giftProductQty" placeholder="贈送數量（整數）">
+          <button type="button" class="btn-outline" id="btnAddGiftRow">＋加入贈品</button>
+        </div>
+        <div class="mat-chip-list" id="giftRowsList"></div>
+      </div>
+
+      <div style="margin-top:16px;"><button class="btn" id="btnAddShipment">✓ 送出紀錄</button></div>
+      <div class="preview-line" id="shipPreview">選擇商品並輸入數量</div>
+      <div class="hint-line">💡 出貨（含贈品）送出後，系統會依商品與贈品的預設包材設定，彈出視窗讓你確認／調整後，把所有需要的包材<b>合併成一筆</b>包材使用紀錄；退貨不影響庫存也不支援贈品。匯入 CSV 為批次作業，不會逐筆彈出視窗，完成後會統一彙總彈出一次。</div>
+
+      <div class="table-wrap" style="margin-top:16px;"><table id="shipmentTableFull"><thead>
+        <tr><th>日期</th><th>商品</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th><th></th></tr>
+      </thead><tbody></tbody></table></div>
+      <div id="pagerShipFull"></div>
+    </div>
+
+    <div class="section-title mat"><span class="dot"></span>填寫包材（入庫 / 使用扣除）</div>
+    <div class="card">
+      <div class="toolbar-row">
+        <button class="btn-outline" id="btnExportMat">⬇ 匯出包材紀錄 CSV</button>
+        <button class="btn-outline" id="btnImportMatTrigger">⬆ 匯入包材紀錄 CSV</button>
+        <button class="btn-outline subtle" id="btnTemplateMat">📄 下載匯入範本</button>
+        <input type="file" accept=".csv" id="importMatFile" style="display:none;">
+      </div>
+      <div class="form-grid">
+        <div><label>日期</label><input type="date" id="matDate"></div>
+        <div><label>包材</label><select id="matSelect"></select></div>
+        <div><label>類型</label>
+          <select id="matType">
+            <option value="in">入庫（增加庫存）</option>
+            <option value="use">使用（扣除庫存）</option>
+          </select>
+        </div>
+        <div><label>數量</label><input type="number" min="0" step="1" id="matQty" placeholder="輸入數量"></div>
+        <div><label>備註</label><input type="text" id="matRemark" placeholder="選填，例如運費／用途"></div>
+        <div><button class="btn secondary" id="btnAddMaterial">✓ 送出包材紀錄</button></div>
+      </div>
+      <div class="preview-line" id="matPreview">選擇包材、類型並輸入數量</div>
+      <div class="hint-line">💡 此區塊為單一包材的手動紀錄；出貨自動建立的多項包材，會合併成一筆顯示在下表中。</div>
+
+      <div class="table-wrap" style="margin-top:16px;"><table id="materialTableFull"><thead>
+        <tr><th>日期</th><th>包材明細</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th><th></th></tr>
+      </thead><tbody></tbody></table></div>
+      <div id="pagerMatFull"></div>
+    </div>
+  </div>
+
+  <!-- ============ PRODUCTS ============ -->
+  <div class="view" id="view-products">
+    <div class="section-title"><span class="dot"></span>商品基本資料設定（只需設定一次，之後每日只要填數量）</div>
+    <div class="card">
+      <div class="toolbar-row">
+        <button class="btn-outline" id="btnExportProduct">⬇ 匯出商品 CSV</button>
+        <button class="btn-outline" id="btnImportProductTrigger">⬆ 匯入商品 CSV</button>
+        <button class="btn-outline subtle" id="btnTemplateProduct">📄 下載匯入範本</button>
+        <input type="file" accept=".csv" id="importProductFile" style="display:none;">
+      </div>
+      <div class="form-grid">
+        <div><label>商品名稱</label><input type="text" id="pName" placeholder="例如：回收酒瓶 600ml"></div>
+        <div><label>目前庫存量</label><input type="number" min="0" step="1" id="pStock" placeholder="0"></div>
+        <div><label>安全庫存量</label><input type="number" min="0" step="1" id="pSafety" placeholder="低於此數量會警示"></div>
+        <div><label>備註</label><input type="text" id="pRemark" placeholder="選填"></div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label>出貨預設包材（可新增多筆，每件用量須為整數）</label>
+        <div class="mat-picker-row">
+          <select id="pMatPicker"></select>
+          <input type="number" min="1" step="1" id="pMatPickerQty" placeholder="每件用量（整數）">
+          <button type="button" class="btn-outline" id="btnAddPMatRow">＋加入</button>
+        </div>
+        <div class="mat-chip-list" id="pMatRowsList"></div>
+      </div>
+
+      <div style="margin-top:16px;"><button class="btn" id="btnAddProduct">＋ 新增商品</button></div>
+
+      <div class="hint-line">💡 設定「出貨預設包材」後，出貨時系統會自動帶出建議的包材使用數量，可一次設定多種包材。</div>
+      <div class="table-wrap" style="margin-top:16px;"><table id="productTable"><thead>
+        <tr><th>商品名稱</th><th>目前庫存</th><th>安全庫存</th><th>備註</th><th>最後操作</th><th>出貨預設包材</th><th></th></tr>
+      </thead><tbody></tbody></table></div>
+      <div id="pagerProduct"></div>
+    </div>
+  </div>
+
+  <!-- ============ MATERIALS ============ -->
+  <div class="view" id="view-materials">
+    <div class="section-title mat"><span class="dot"></span>包材基本資料設定（只需設定一次，之後每日只要填入庫／使用量）</div>
+    <div class="card">
+      <div class="toolbar-row">
+        <button class="btn-outline" id="btnExportMaterial">⬇ 匯出包材 CSV</button>
+        <button class="btn-outline" id="btnImportMaterialTrigger">⬆ 匯入包材 CSV</button>
+        <button class="btn-outline subtle" id="btnTemplateMaterial">📄 下載匯入範本</button>
+        <input type="file" accept=".csv" id="importMaterialFile" style="display:none;">
+      </div>
+      <div class="form-grid">
+        <div><label>包材名稱</label><input type="text" id="mName" placeholder="例如：紙箱 A 號"></div>
+        <div><label>單價／費用（元）</label><input type="number" min="0" step="0.01" id="mPrice" placeholder="0"></div>
+        <div><label>目前剩餘量</label><input type="number" min="0" step="1" id="mStock" placeholder="0"></div>
+        <div><label>安全庫存量</label><input type="number" min="0" step="1" id="mSafety" placeholder="低於此數量會警示"></div>
+        <div><label>備註</label><input type="text" id="mRemark" placeholder="選填"></div>
+        <div><button class="btn secondary" id="btnAddMaterialDef">＋ 新增包材</button></div>
+      </div>
+      <div class="table-wrap" style="margin-top:16px;"><table id="materialDefTable"><thead>
+        <tr><th>包材名稱</th><th>單價</th><th>剩餘量</th><th>安全庫存</th><th>備註</th><th>最後操作</th><th></th></tr>
+      </thead><tbody></tbody></table></div>
+      <div id="pagerMaterialDef"></div>
+    </div>
+  </div>
+
+  <div class="footer-tip">資料設定好之後，之後每天只要到「每日填寫」輸入數量，儀表板就會自動更新最新狀態。</div>
+</div>
+
+<div id="materialModalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'ecoco-inventory-data-v7';
+const SESSION_KEY = 'ecoco-session-v7';
+const SHARED = true;
+const PAGE_SIZE_OPTIONS = [5,10,50,100,500,1000];
+const ALL_RANGE_START = '2026-01-01';
+const ALL_RANGE_END = '2099-12-31';
+
+const DEFAULT_USERS = [
+  {account:'FLCHR0159', name:'Eva',  password:'FLCHR0159', isAdmin:false},
+  {account:'FLCHR0160', name:'Beryl',password:'FLCHR0160', isAdmin:false},
+  {account:'FLCHR0170', name:'Krystal',password:'FLCHR0170', isAdmin:false},
+  {account:'FLCHR0135', name:'Yu',   password:'FLCHR0135', isAdmin:false},
+  {account:'FLCHR0021', name:'Fen',  password:'FLCHR0021', isAdmin:true},
+  {account:'FLCHR0040', name:'Ida',  password:'FLCHR0040', isAdmin:false},
+  {account:'FLCHR0065', name:'佳美', password:'FLCHR0065', isAdmin:false},
+];
+
+let state = {
+  users: JSON.parse(JSON.stringify(DEFAULT_USERS)),
+  products: [],
+  materials: [],
+  shipments: [],
+  packagingRecords: []
+};
+
+let currentUser = null;
+let rangeState = { mode:'week', start:null, end:null };
+let newProductMaterials = [];
+let newShipGifts = [];
+let stockFilter = { product:'', material:'' };
+
+let pagers = {
+  products:{page:1,size:5},
+  materials:{page:1,size:5},
+  shipFull:{page:1,size:5},
+  matFull:{page:1,size:5},
+  shipDash:{page:1,size:5},
+  matDash:{page:1,size:5},
+  stockProducts:{page:1,size:5},
+  stockMaterials:{page:1,size:5},
+};
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function fmtNum(n){ return (n ?? 0).toLocaleString('zh-TW'); }
+function fmtMoney(n){ return 'NT$' + (Math.round((n||0)*100)/100).toLocaleString('zh-TW'); }
+function pad2(n){ return String(n).padStart(2,'0'); }
+
+function taiwanNowParts(){
+  const d = new Date(Date.now() + 8*3600*1000);
+  return { y:d.getUTCFullYear(), m:d.getUTCMonth(), day:d.getUTCDate(), hh:d.getUTCHours(), mi:d.getUTCMinutes(), ss:d.getUTCSeconds(), dow:d.getUTCDay() };
+}
+function ymd(y,m,day){ return `${y}-${pad2(m+1)}-${pad2(day)}`; }
+function todayStr(){ const {y,m,day} = taiwanNowParts(); return ymd(y,m,day); }
+function nowStr(){ const {y,m,day,hh,mi,ss} = taiwanNowParts(); return `${ymd(y,m,day)} ${pad2(hh)}:${pad2(mi)}:${pad2(ss)}`; }
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+}
+function whoWhenHtml(name, ts){
+  return `<div class="who-when"><b>${escapeHtml(name||'—')}</b><br>${ts||'—'}</div>`;
+}
+
+function showToast(msg, isWarn){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('warn-toast', !!isWarn);
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function alertWarn(msg){
+  showToast('⚠ '+msg, true);
+  alert('⚠ '+msg);
+}
+
+/* ---------- Storage ---------- */
+async function loadData(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, SHARED);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      state = Object.assign(state, parsed);
+    }
+  }catch(e){ console.log('尚無資料，使用初始空白狀態'); }
+
+  if(!state.users || state.users.length===0) state.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
+  state.products.forEach(p=>{
+    if(p.stock===undefined) p.stock=0;
+    if(p.safety===undefined) p.safety=0;
+    if(p.remark===undefined) p.remark='';
+    if(p.materialUsages===undefined){
+      if(p.defaultMaterialId){
+        p.materialUsages = [{materialId:p.defaultMaterialId, perUnit: Math.round(p.materialPerUnit||1) || 1}];
+      } else {
+        p.materialUsages = [];
+      }
+    }
+    if(!p.updatedAt) p.updatedAt = p.createdAt || '—';
+    if(!p.updatedBy) p.updatedBy = p.createdBy || '（歷史資料）';
+  });
+  state.materials.forEach(m=>{
+    if(m.stock===undefined) m.stock=0;
+    if(m.safety===undefined) m.safety=0;
+    if(m.price===undefined) m.price=0;
+    if(m.remark===undefined) m.remark='';
+    if(!m.updatedAt) m.updatedAt = m.createdAt || '—';
+    if(!m.updatedBy) m.updatedBy = m.createdBy || '（歷史資料）';
+  });
+
+  // migrate legacy separate gift-child shipment records into embedded gifts[] on their parent
+  const byId = {};
+  state.shipments.forEach(s=>{ byId[s.id] = s; });
+  const childGiftRecords = state.shipments.filter(s=>s.isGift && s.parentId);
+  childGiftRecords.forEach(child=>{
+    const parent = byId[child.parentId];
+    if(parent){
+      parent.gifts = parent.gifts || [];
+      parent.gifts.push({productId:child.productId, productName:child.productName, qty:child.qty});
+    }
+  });
+  state.shipments = state.shipments.filter(s=>!(s.isGift && s.parentId));
+  state.shipments.forEach(s=>{
+    if(!s.timestamp) s.timestamp = s.createdAt || '—';
+    if(!s.byName) s.byName='（歷史紀錄）';
+    if(!s.shipType) s.shipType='ship';
+    if(s.remark===undefined) s.remark='';
+    if(s.gifts===undefined) s.gifts=[];
+    delete s.isGift; delete s.parentId;
+  });
+
+  state.packagingRecords.forEach(r=>{
+    if(!r.type) r.type='use';
+    if(!r.timestamp) r.timestamp = r.createdAt || '—';
+    if(!r.byName) r.byName='（歷史紀錄）';
+    if(r.remark===undefined) r.remark='';
+    if(!r.items){
+      if(r.price===undefined) r.price=0;
+      if(r.amount===undefined) r.amount = (r.qty||0)*(r.price||0);
+    }
+  });
+
+  await restoreSession();
+  renderAll();
+}
+
+async function saveData(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), SHARED);
+    document.getElementById('lastUpdated').textContent = nowStr();
+  }catch(e){
+    console.error('儲存失敗', e);
+    showToast('⚠ 儲存失敗，請稍後再試', true);
+  }
+}
+
+/* ---------- Auth ---------- */
+async function restoreSession(){
+  try{
+    const res = await window.storage.get(SESSION_KEY, false);
+    if(res && res.value){
+      const {account} = JSON.parse(res.value);
+      const u = state.users.find(x=>x.account===account);
+      if(u) currentUser = {account:u.account, name:u.name, isAdmin:u.isAdmin};
+    }
+  }catch(e){}
+}
+async function persistSession(){
+  try{ await window.storage.set(SESSION_KEY, JSON.stringify({account: currentUser.account}), false); }catch(e){}
+}
+async function clearSession(){
+  try{ await window.storage.delete(SESSION_KEY, false); }catch(e){}
+}
+
+function renderAuth(){
+  const el = document.getElementById('authArea');
+  if(currentUser){
+    el.innerHTML = `
+      <div class="user-chip">
+        <span class="name">${escapeHtml(currentUser.name)}</span>
+        ${currentUser.isAdmin ? '<span class="role">管理者</span>' : ''}
+        <button class="btn-logout" id="btnLogout">登出</button>
+      </div>`;
+    document.getElementById('btnLogout').addEventListener('click', async ()=>{
+      currentUser = null;
+      await clearSession();
+      renderAuth();
+      renderAll();
+      showToast('已登出');
+    });
+  } else {
+    el.innerHTML = `
+      <div class="login-box">
+        <div class="login-row">
+          <input type="text" id="loginAccount" placeholder="工號帳號">
+        </div>
+        <div class="login-row">
+          <input type="password" id="loginPassword" placeholder="密碼">
+        </div>
+        <div class="login-actions">
+          <button class="forgot-link" id="btnForgot">忘記密碼？</button>
+          <button class="btn-login" id="btnLogin">登入</button>
+        </div>
+      </div>`;
+    document.getElementById('btnLogin').addEventListener('click', doLogin);
+    document.getElementById('loginPassword').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+    document.getElementById('btnForgot').addEventListener('click', doForgotPassword);
+  }
+}
+
+async function doLogin(){
+  const acc = document.getElementById('loginAccount').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  const u = state.users.find(x=>x.account===acc);
+  if(!u){ showToast('查無此工號帳號', true); return; }
+  if(u.password !== pw){ showToast('密碼錯誤', true); return; }
+  currentUser = {account:u.account, name:u.name, isAdmin:u.isAdmin};
+  await persistSession();
+  renderAuth();
+  renderAll();
+  showToast('歡迎回來，'+u.name);
+}
+
+function doForgotPassword(){
+  const acc = prompt('請輸入您的工號帳號：');
+  if(!acc) return;
+  const u = state.users.find(x=>x.account===acc.trim());
+  if(!u){ showToast('查無此工號帳號', true); return; }
+  const pw1 = prompt('請輸入新密碼：');
+  if(!pw1) return;
+  const pw2 = prompt('請再次輸入新密碼以確認：');
+  if(pw1 !== pw2){ showToast('兩次密碼輸入不一致', true); return; }
+  u.password = pw1;
+  saveData();
+  showToast('密碼已重設，請用新密碼登入');
+}
+
+function requireLogin(actionLabel){
+  if(!currentUser){ showToast('請先登入才能'+actionLabel, true); return false; }
+  return true;
+}
+function requireAdmin(){
+  if(!currentUser || !currentUser.isAdmin){ showToast('僅管理者可執行刪除', true); return false; }
+  return true;
+}
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- Date range filter (Taiwan GMT+8) ---------- */
+document.getElementById('rangeMode').addEventListener('change', e=>{
+  const isCustom = e.target.value==='custom';
+  document.getElementById('customStartWrap').style.display = isCustom ? '' : 'none';
+  document.getElementById('customEndWrap').style.display = isCustom ? '' : 'none';
+});
+document.getElementById('btnApplyRange').addEventListener('click', ()=>{
+  rangeState.mode = document.getElementById('rangeMode').value;
+  rangeState.start = document.getElementById('rangeStart').value || null;
+  rangeState.end = document.getElementById('rangeEnd').value || null;
+  pagers.shipDash.page = 1; pagers.matDash.page = 1;
+  renderAll();
+});
+
+function computeRangeBounds(){
+  const {y,m,day,dow} = taiwanNowParts();
+  let startStr, endStr;
+  if(rangeState.mode==='today'){
+    startStr = ymd(y,m,day); endStr = startStr;
+  } else if(rangeState.mode==='week'){
+    const sunday = new Date(Date.UTC(y,m,day-dow));
+    const saturday = new Date(Date.UTC(y,m,day-dow+6));
+    startStr = ymd(sunday.getUTCFullYear(), sunday.getUTCMonth(), sunday.getUTCDate());
+    endStr = ymd(saturday.getUTCFullYear(), saturday.getUTCMonth(), saturday.getUTCDate());
+  } else if(rangeState.mode==='month'){
+    const lastDay = new Date(Date.UTC(y, m+1, 0)).getUTCDate();
+    startStr = ymd(y,m,1);
+    endStr = ymd(y,m,lastDay);
+  } else if(rangeState.mode==='all'){
+    startStr = ALL_RANGE_START; endStr = ALL_RANGE_END;
+  } else {
+    startStr = rangeState.start || ALL_RANGE_START;
+    endStr = rangeState.end || ALL_RANGE_END;
+  }
+  return {startStr, endStr};
+}
+function inRange(dateStr){
+  const {startStr,endStr} = computeRangeBounds();
+  return dateStr >= startStr && dateStr <= endStr;
+}
+
+/* ---------- Pagination helpers ---------- */
+function paginate(list, key){
+  const p = pagers[key];
+  const totalPages = Math.max(1, Math.ceil(list.length/p.size));
+  if(p.page>totalPages) p.page = totalPages;
+  const start = (p.page-1)*p.size;
+  return { slice: list.slice(start, start+p.size), totalPages, total:list.length };
+}
+function renderPager(containerId, key, totalItems){
+  const p = pagers[key];
+  const totalPages = Math.max(1, Math.ceil(totalItems/p.size));
+  const el = document.getElementById(containerId);
+  el.innerHTML = `
+    <div class="pager">
+      <button class="pager-btn" data-k="${key}" data-act="prev" ${p.page<=1?'disabled':''}>‹ 上一頁</button>
+      <span class="pager-info">第 ${p.page} / ${totalPages} 頁（共 ${totalItems} 筆）</span>
+      <button class="pager-btn" data-k="${key}" data-act="next" ${p.page>=totalPages?'disabled':''}>下一頁 ›</button>
+      <select class="pager-size" data-k="${key}">
+        ${PAGE_SIZE_OPTIONS.map(n=>`<option value="${n}" ${n===p.size?'selected':''}>${n} 筆/頁</option>`).join('')}
+      </select>
+    </div>`;
+  el.querySelectorAll('.pager-btn').forEach(b=>b.addEventListener('click', ()=>{
+    const k=b.dataset.k, act=b.dataset.act;
+    pagers[k].page = act==='prev' ? Math.max(1,pagers[k].page-1) : pagers[k].page+1;
+    renderAll();
+  }));
+  el.querySelectorAll('.pager-size').forEach(s=>s.addEventListener('change', ()=>{
+    pagers[s.dataset.k].size = parseInt(s.value);
+    pagers[s.dataset.k].page = 1;
+    renderAll();
+  }));
+}
+
+/* =========================================================
+   CSV helpers
+   ========================================================= */
+function toCSVField(v){
+  const s = (v===null||v===undefined) ? '' : String(v);
+  if(/[",\n]/.test(s)) return '"'+s.replace(/"/g,'""')+'"';
+  return s;
+}
+function buildCSV(headers, rows){
+  const lines = [headers.map(toCSVField).join(',')];
+  rows.forEach(r=> lines.push(r.map(toCSVField).join(',')));
+  return '\uFEFF' + lines.join('\r\n');
+}
+function downloadCSV(filename, csvString){
+  const blob = new Blob([csvString], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+}
+function parseCSV(text){
+  const rows = [];
+  let row = [], field = '', inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field+='"'; i++; } else { inQuotes=false; }
+      } else field += c;
+    } else {
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length>0 || row.length>0){ row.push(field); rows.push(row); }
+  if(rows.length && rows[0].length){ rows[0][0] = (rows[0][0]||'').replace(/^\uFEFF/, ''); }
+  return rows.filter(r=> r.some(c=>String(c).trim()!==''));
+}
+function encodeMaterialUsages(usages){
+  return (usages||[]).map(u=>{
+    const m = state.materials.find(x=>x.id===u.materialId);
+    return m ? `${m.name}:${u.perUnit}` : null;
+  }).filter(Boolean).join(';');
+}
+function decodeMaterialUsages(str){
+  if(!str || !str.trim()) return [];
+  return str.split(';').map(s=>s.trim()).filter(Boolean).map(pair=>{
+    const idx = pair.lastIndexOf(':');
+    if(idx===-1) return null;
+    const name = pair.slice(0,idx).trim();
+    const qty = parseInt(pair.slice(idx+1));
+    const mat = state.materials.find(m=>m.name===name);
+    if(!mat || isNaN(qty) || qty<=0) return null;
+    return {materialId:mat.id, perUnit:qty};
+  }).filter(Boolean);
+}
+function encodeGifts(gifts){
+  return (gifts||[]).map(g=>`${g.productName}:${g.qty}`).join(';');
+}
+
+/* ---------- Products: multi-material picker (add form) ---------- */
+function refreshMaterialPickers(){
+  const pPicker = document.getElementById('pMatPicker');
+  if(pPicker){
+    pPicker.innerHTML = state.materials.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('') || '<option value="">請先設定包材</option>';
+  }
+}
+function renderPMatRowsList(){
+  const el = document.getElementById('pMatRowsList');
+  if(newProductMaterials.length===0){ el.innerHTML = '<span style="font-size:12px;color:var(--muted);">尚未加入任何包材</span>'; return; }
+  el.innerHTML = newProductMaterials.map((r,idx)=>`<span class="mat-chip">${escapeHtml(r.name)} × ${r.perUnit}<button type="button" data-idx="${idx}" class="rmPMatRow">✕</button></span>`).join('');
+  el.querySelectorAll('.rmPMatRow').forEach(b=>b.addEventListener('click', e=>{
+    newProductMaterials.splice(parseInt(e.target.dataset.idx),1);
+    renderPMatRowsList();
+  }));
+}
+document.getElementById('btnAddPMatRow').addEventListener('click', ()=>{
+  const matId = document.getElementById('pMatPicker').value;
+  const qty = parseInt(document.getElementById('pMatPickerQty').value);
+  if(!matId){ showToast('請選擇包材', true); return; }
+  if(isNaN(qty) || qty<=0){ showToast('每件用量需為正整數', true); return; }
+  if(newProductMaterials.some(r=>r.materialId===matId)){ showToast('此包材已加入清單', true); return; }
+  const mat = state.materials.find(m=>m.id===matId);
+  newProductMaterials.push({materialId:matId, name:mat.name, perUnit:qty});
+  document.getElementById('pMatPickerQty').value='';
+  renderPMatRowsList();
+});
+
+document.getElementById('btnAddProduct').addEventListener('click', async ()=>{
+  if(!requireLogin('新增商品')) return;
+  const name = document.getElementById('pName').value.trim();
+  const stock = parseFloat(document.getElementById('pStock').value);
+  const safety = parseFloat(document.getElementById('pSafety').value);
+  const remark = document.getElementById('pRemark').value.trim();
+  if(!name || isNaN(stock)){ showToast('請完整填寫商品名稱與庫存', true); return; }
+  if(stock<0 || (!isNaN(safety) && safety<0)){ alertWarn('庫存量與安全庫存不能為負數'); return; }
+  state.products.push({
+    id:uid(), name, stock, safety: isNaN(safety)?0:safety, remark,
+    materialUsages: newProductMaterials.map(r=>({materialId:r.materialId, perUnit:r.perUnit})),
+    createdAt: nowStr(), createdBy: currentUser.name,
+    updatedAt: nowStr(), updatedBy: currentUser.name
+  });
+  document.getElementById('pName').value='';
+  document.getElementById('pStock').value='';
+  document.getElementById('pSafety').value='';
+  document.getElementById('pRemark').value='';
+  newProductMaterials = [];
+  renderPMatRowsList();
+  await saveData();
+  renderAll();
+  showToast('已新增商品：'+name);
+});
+
+function materialUsagesLabel(p){
+  if(!p.materialUsages || p.materialUsages.length===0) return '<span style="color:var(--muted);">未設定</span>';
+  return p.materialUsages.map(u=>{
+    const m = state.materials.find(x=>x.id===u.materialId);
+    return m ? `${escapeHtml(m.name)}×${u.perUnit}` : null;
+  }).filter(Boolean).join('、');
+}
+
+function renderProductTable(){
+  const tbody = document.querySelector('#productTable tbody');
+  tbody.innerHTML='';
+  if(state.products.length===0){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-hint">尚未設定商品，請於上方新增</td></tr>';
+    renderPager('pagerProduct','products',0);
+    return;
+  }
+  const {slice} = paginate(state.products, 'products');
+  slice.forEach(p=>{
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-rid', p.id);
+    tr.innerHTML = `<td>${escapeHtml(p.name)}</td>
+      <td>${fmtNum(p.stock)}</td><td>${fmtNum(p.safety)}</td>
+      <td class="remark-text">${escapeHtml(p.remark||'—')}</td>
+      <td>${whoWhenHtml(p.updatedBy,p.updatedAt)}</td>
+      <td style="font-size:12px;">${materialUsagesLabel(p)}</td>
+      <td class="row-actions">
+        <button data-id="${p.id}" class="editProduct">編輯</button>
+        <button data-id="${p.id}" class="matSetProduct">包材設定</button>
+        <button data-id="${p.id}" class="delProduct delBtn" ${currentUser&&currentUser.isAdmin?'':'disabled'}>刪除</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.delProduct').forEach(b=>b.addEventListener('click', async e=>{
+    if(!requireAdmin()) return;
+    if(!confirm('確定要刪除此商品？')) return;
+    state.products = state.products.filter(p=>p.id!==e.target.dataset.id);
+    await saveData(); renderAll();
+  }));
+  tbody.querySelectorAll('.editProduct').forEach(b=>b.addEventListener('click', e=>startEditProduct(e.target.dataset.id)));
+  tbody.querySelectorAll('.matSetProduct').forEach(b=>b.addEventListener('click', e=>openProductMaterialsModal(e.target.dataset.id)));
+  renderPager('pagerProduct','products', state.products.length);
+}
+
+function startEditProduct(id){
+  if(!requireLogin('編輯商品')) return;
+  const p = state.products.find(x=>x.id===id);
+  if(!p) return;
+  const row = document.querySelector(`#productTable tr[data-rid="${id}"]`);
+  if(!row) return;
+  row.innerHTML = `
+    <td class="edit-cell"><input type="text" value="${escapeHtml(p.name)}" id="ePName"></td>
+    <td class="edit-cell"><input type="number" step="1" value="${p.stock}" id="ePStock"></td>
+    <td class="edit-cell"><input type="number" step="1" value="${p.safety}" id="ePSafety"></td>
+    <td class="edit-cell"><input type="text" value="${escapeHtml(p.remark||'')}" id="ePRemark"></td>
+    <td colspan="2" style="color:var(--muted);font-size:11px;">包材設定請用「包材設定」按鈕；儲存後將自動更新時間戳</td>
+    <td class="row-actions">
+      <button id="ePSave">儲存</button>
+      <button id="ePCancel">取消</button>
+    </td>`;
+  document.getElementById('ePSave').addEventListener('click', async ()=>{
+    const newStock = parseFloat(document.getElementById('ePStock').value);
+    const newSafety = parseFloat(document.getElementById('ePSafety').value);
+    if(isNaN(newStock) || newStock<0){ alertWarn('庫存量不能為負數，請重新輸入'); return; }
+    if(isNaN(newSafety) || newSafety<0){ alertWarn('安全庫存不能為負數，請重新輸入'); return; }
+    p.name = document.getElementById('ePName').value.trim() || p.name;
+    p.stock = newStock;
+    p.safety = newSafety;
+    p.remark = document.getElementById('ePRemark').value.trim();
+    p.updatedAt = nowStr();
+    p.updatedBy = currentUser.name;
+    await saveData(); renderAll();
+    showToast('商品資料已更新');
+  });
+  document.getElementById('ePCancel').addEventListener('click', renderAll);
+}
+
+/* ---------- Product default-material modal (multi rows) ---------- */
+function openProductMaterialsModal(productId){
+  if(!requireLogin('設定商品包材')) return;
+  const p = state.products.find(x=>x.id===productId);
+  if(!p) return;
+  let temp = JSON.parse(JSON.stringify(p.materialUsages||[]));
+  const root = document.getElementById('materialModalRoot');
+
+  function rowsHtml(){
+    if(temp.length===0) return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">尚未設定包材</div>';
+    return temp.map((u,idx)=>{
+      const mat = state.materials.find(m=>m.id===u.materialId);
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="flex:1;font-size:13px;font-weight:700;">${escapeHtml(mat?mat.name:'（已刪除包材）')}</span>
+        <input type="number" min="1" step="1" value="${u.perUnit}" data-idx="${idx}" class="pmUsageQty" style="width:90px;">
+        <button type="button" data-idx="${idx}" class="pmUsageRemove" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:900;font-size:14px;">✕</button>
+      </div>`;
+    }).join('');
+  }
+  function render(){
+    const matOptions = state.materials.filter(m=>!temp.some(u=>u.materialId===m.id)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+          <h3>🧾「${escapeHtml(p.name)}」出貨預設包材設定</h3>
+          <p>設定此商品出貨時通常需要用到的包材與每件用量（整數）。出貨後系統會依此自動帶入建議的包材使用紀錄。</p>
+          <div id="pmUsageRows">${rowsHtml()}</div>
+          <div class="mat-picker-row" style="margin-top:6px;">
+            <select id="pmAddMatSelect">${matOptions || '<option value="">（無其他可加入的包材）</option>'}</select>
+            <input type="number" min="1" step="1" id="pmAddMatQty" placeholder="每件用量（整數）">
+            <button type="button" class="btn-outline" id="pmAddRow">＋加入</button>
+          </div>
+          <div class="modal-actions">
+            <button class="btn secondary" id="pmCancel">取消</button>
+            <button class="btn" id="pmSave">儲存設定</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('pmAddRow').addEventListener('click', ()=>{
+      const matId = document.getElementById('pmAddMatSelect').value;
+      const qty = parseInt(document.getElementById('pmAddMatQty').value);
+      if(!matId){ showToast('請選擇包材', true); return; }
+      if(isNaN(qty) || qty<=0){ showToast('每件用量需為正整數', true); return; }
+      temp.push({materialId:matId, perUnit:qty});
+      render();
+    });
+    root.querySelectorAll('.pmUsageQty').forEach(inp=>inp.addEventListener('change', e=>{
+      const idx = parseInt(e.target.dataset.idx);
+      const v = parseInt(e.target.value);
+      temp[idx].perUnit = (isNaN(v)||v<=0) ? 1 : v;
+    }));
+    root.querySelectorAll('.pmUsageRemove').forEach(b=>b.addEventListener('click', e=>{
+      temp.splice(parseInt(e.target.dataset.idx),1);
+      render();
+    }));
+    document.getElementById('pmCancel').addEventListener('click', closeMaterialModal);
+    document.getElementById('pmSave').addEventListener('click', async ()=>{
+      p.materialUsages = temp;
+      p.updatedAt = nowStr(); p.updatedBy = currentUser.name;
+      await saveData();
+      closeMaterialModal();
+      renderAll();
+      showToast('包材設定已更新');
+    });
+  }
+  render();
+}
+
+/* ---------- Products CSV ---------- */
+document.getElementById('btnExportProduct').addEventListener('click', ()=>{
+  const headers = ['商品名稱','目前庫存','安全庫存','出貨預設包材(格式:名稱:用量;名稱:用量)','備註'];
+  const rows = state.products.map(p=>[p.name, p.stock, p.safety, encodeMaterialUsages(p.materialUsages), p.remark||'']);
+  downloadCSV('ecoco_商品設定_'+todayStr()+'.csv', buildCSV(headers, rows));
+  showToast('已匯出商品 CSV');
+});
+document.getElementById('btnTemplateProduct').addEventListener('click', ()=>{
+  const headers = ['商品名稱','目前庫存','安全庫存','出貨預設包材(格式:名稱:用量;名稱:用量)','備註'];
+  const rows = [['回收酒瓶600ml','100','20','紙箱A:1;氣泡布:2','範例資料，請刪除後依實際資料建立']];
+  downloadCSV('ecoco_商品匯入範本.csv', buildCSV(headers, rows));
+  showToast('已下載商品匯入範本');
+});
+document.getElementById('btnImportProductTrigger').addEventListener('click', ()=>{
+  if(!requireLogin('匯入商品資料')) return;
+  document.getElementById('importProductFile').click();
+});
+document.getElementById('importProductFile').addEventListener('change', function(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev=>{
+    const rows = parseCSV(ev.target.result);
+    if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    let added=0, updated=0, skipped=0;
+    for(let i=1;i<rows.length;i++){
+      const c = rows[i];
+      const name = (c[0]||'').trim();
+      if(!name){ skipped++; continue; }
+      const stock = parseFloat(c[1]);
+      const safety = parseFloat(c[2]);
+      const matUsageStr = (c[3]||'').trim();
+      const remark = (c[4]||'').trim();
+      if(isNaN(stock) || stock<0){ skipped++; continue; }
+      const decodedUsages = matUsageStr ? decodeMaterialUsages(matUsageStr) : null;
+      let existing = state.products.find(p=>p.name===name);
+      if(existing){
+        existing.stock = stock;
+        existing.safety = isNaN(safety)?existing.safety:safety;
+        existing.remark = remark || existing.remark;
+        if(decodedUsages) existing.materialUsages = decodedUsages;
+        existing.updatedAt = nowStr(); existing.updatedBy = currentUser.name;
+        updated++;
+      } else {
+        state.products.push({
+          id:uid(), name, stock, safety:isNaN(safety)?0:safety, remark,
+          materialUsages: decodedUsages || [],
+          createdAt: nowStr(), createdBy: currentUser.name, updatedAt: nowStr(), updatedBy: currentUser.name
+        });
+        added++;
+      }
+    }
+    await saveData(); renderAll();
+    showToast(`商品匯入完成：新增 ${added}、更新 ${updated}、略過 ${skipped}`);
+    e.target.value='';
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+/* ---------- Materials def ---------- */
+document.getElementById('btnAddMaterialDef').addEventListener('click', async ()=>{
+  if(!requireLogin('新增包材')) return;
+  const name = document.getElementById('mName').value.trim();
+  const price = parseFloat(document.getElementById('mPrice').value);
+  const stock = parseFloat(document.getElementById('mStock').value);
+  const safety = parseFloat(document.getElementById('mSafety').value);
+  const remark = document.getElementById('mRemark').value.trim();
+  if(!name){ showToast('請填寫包材名稱', true); return; }
+  if((!isNaN(stock)&&stock<0) || (!isNaN(safety)&&safety<0) || (!isNaN(price)&&price<0)){ alertWarn('單價、剩餘量與安全庫存不能為負數'); return; }
+  state.materials.push({
+    id:uid(), name, price:isNaN(price)?0:price, stock:isNaN(stock)?0:stock, safety:isNaN(safety)?0:safety, remark,
+    createdAt: nowStr(), createdBy: currentUser.name,
+    updatedAt: nowStr(), updatedBy: currentUser.name
+  });
+  document.getElementById('mName').value='';
+  document.getElementById('mPrice').value='';
+  document.getElementById('mStock').value='';
+  document.getElementById('mSafety').value='';
+  document.getElementById('mRemark').value='';
+  await saveData(); renderAll();
+  showToast('已新增包材：'+name);
+});
+
+function renderMaterialDefTable(){
+  const tbody = document.querySelector('#materialDefTable tbody');
+  tbody.innerHTML='';
+  if(state.materials.length===0){
+    tbody.innerHTML = '<tr><td colspan="7" class="empty-hint">尚未設定包材，請於上方新增</td></tr>';
+    renderPager('pagerMaterialDef','materials',0);
+    return;
+  }
+  const {slice} = paginate(state.materials, 'materials');
+  slice.forEach(m=>{
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-rid', m.id);
+    tr.innerHTML = `<td>${escapeHtml(m.name)}</td>
+      <td>${fmtMoney(m.price)}</td>
+      <td>${fmtNum(m.stock)}</td><td>${fmtNum(m.safety)}</td>
+      <td class="remark-text">${escapeHtml(m.remark||'—')}</td>
+      <td>${whoWhenHtml(m.updatedBy,m.updatedAt)}</td>
+      <td class="row-actions">
+        <button data-id="${m.id}" class="editMaterial">編輯</button>
+        <button data-id="${m.id}" class="delMaterial delBtn" ${currentUser&&currentUser.isAdmin?'':'disabled'}>刪除</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.delMaterial').forEach(b=>b.addEventListener('click', async e=>{
+    if(!requireAdmin()) return;
+    if(!confirm('確定要刪除此包材？')) return;
+    state.materials = state.materials.filter(m=>m.id!==e.target.dataset.id);
+    await saveData(); renderAll();
+  }));
+  tbody.querySelectorAll('.editMaterial').forEach(b=>b.addEventListener('click', e=>startEditMaterial(e.target.dataset.id)));
+  renderPager('pagerMaterialDef','materials', state.materials.length);
+}
+
+function startEditMaterial(id){
+  if(!requireLogin('編輯包材')) return;
+  const m = state.materials.find(x=>x.id===id);
+  if(!m) return;
+  const row = document.querySelector(`#materialDefTable tr[data-rid="${id}"]`);
+  if(!row) return;
+  row.innerHTML = `
+    <td class="edit-cell"><input type="text" value="${escapeHtml(m.name)}" id="eMName"></td>
+    <td class="edit-cell"><input type="number" step="0.01" value="${m.price}" id="eMPrice"></td>
+    <td class="edit-cell"><input type="number" step="1" value="${m.stock}" id="eMStock"></td>
+    <td class="edit-cell"><input type="number" step="1" value="${m.safety}" id="eMSafety"></td>
+    <td class="edit-cell"><input type="text" value="${escapeHtml(m.remark||'')}" id="eMRemark"></td>
+    <td style="color:var(--muted);font-size:11px;">編輯後將自動更新時間戳</td>
+    <td class="row-actions">
+      <button id="eMSave">儲存</button>
+      <button id="eMCancel">取消</button>
+    </td>`;
+  document.getElementById('eMSave').addEventListener('click', async ()=>{
+    const newStock = parseFloat(document.getElementById('eMStock').value);
+    const newSafety = parseFloat(document.getElementById('eMSafety').value);
+    const newPrice = parseFloat(document.getElementById('eMPrice').value);
+    if(isNaN(newStock) || newStock<0){ alertWarn('剩餘量不能為負數，請重新輸入'); return; }
+    if(isNaN(newSafety) || newSafety<0){ alertWarn('安全庫存不能為負數，請重新輸入'); return; }
+    if(isNaN(newPrice) || newPrice<0){ alertWarn('單價不能為負數，請重新輸入'); return; }
+    m.name = document.getElementById('eMName').value.trim() || m.name;
+    m.price = newPrice;
+    m.stock = newStock;
+    m.safety = newSafety;
+    m.remark = document.getElementById('eMRemark').value.trim();
+    m.updatedAt = nowStr();
+    m.updatedBy = currentUser.name;
+    await saveData(); renderAll();
+    showToast('包材資料已更新');
+  });
+  document.getElementById('eMCancel').addEventListener('click', renderAll);
+}
+
+/* ---------- Materials CSV ---------- */
+document.getElementById('btnExportMaterial').addEventListener('click', ()=>{
+  const headers = ['包材名稱','單價','剩餘量','安全庫存','備註'];
+  const rows = state.materials.map(m=>[m.name, m.price, m.stock, m.safety, m.remark||'']);
+  downloadCSV('ecoco_包材設定_'+todayStr()+'.csv', buildCSV(headers, rows));
+  showToast('已匯出包材 CSV');
+});
+document.getElementById('btnTemplateMaterial').addEventListener('click', ()=>{
+  const headers = ['包材名稱','單價','剩餘量','安全庫存','備註'];
+  const rows = [['紙箱A','15','200','50','範例資料，請刪除後依實際資料建立']];
+  downloadCSV('ecoco_包材匯入範本.csv', buildCSV(headers, rows));
+  showToast('已下載包材匯入範本');
+});
+document.getElementById('btnImportMaterialTrigger').addEventListener('click', ()=>{
+  if(!requireLogin('匯入包材資料')) return;
+  document.getElementById('importMaterialFile').click();
+});
+document.getElementById('importMaterialFile').addEventListener('change', function(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev=>{
+    const rows = parseCSV(ev.target.result);
+    if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    let added=0, updated=0, skipped=0;
+    for(let i=1;i<rows.length;i++){
+      const c = rows[i];
+      const name = (c[0]||'').trim();
+      if(!name){ skipped++; continue; }
+      const price = parseFloat(c[1]);
+      const stock = parseFloat(c[2]);
+      const safety = parseFloat(c[3]);
+      const remark = (c[4]||'').trim();
+      if((!isNaN(stock)&&stock<0)){ skipped++; continue; }
+      let existing = state.materials.find(m=>m.name===name);
+      if(existing){
+        existing.price = isNaN(price)?existing.price:price;
+        existing.stock = isNaN(stock)?existing.stock:stock;
+        existing.safety = isNaN(safety)?existing.safety:safety;
+        existing.remark = remark || existing.remark;
+        existing.updatedAt = nowStr(); existing.updatedBy = currentUser.name;
+        updated++;
+      } else {
+        state.materials.push({
+          id:uid(), name, price:isNaN(price)?0:price, stock:isNaN(stock)?0:stock, safety:isNaN(safety)?0:safety, remark,
+          createdAt: nowStr(), createdBy: currentUser.name, updatedAt: nowStr(), updatedBy: currentUser.name
+        });
+        added++;
+      }
+    }
+    await saveData(); renderAll();
+    showToast(`包材匯入完成：新增 ${added}、更新 ${updated}、略過 ${skipped}`);
+    e.target.value='';
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+/* ---------- Entry: dropdowns ---------- */
+function refreshDropdowns(){
+  const shipSel = document.getElementById('shipProduct');
+  const prevShip = shipSel.value;
+  shipSel.innerHTML = state.products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') || '<option value="">請先設定商品</option>';
+  if(prevShip) shipSel.value = prevShip;
+
+  const matSel = document.getElementById('matSelect');
+  const prevMat = matSel.value;
+  matSel.innerHTML = state.materials.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('') || '<option value="">請先設定包材</option>';
+  if(prevMat) matSel.value = prevMat;
+
+  refreshMaterialPickers();
+  refreshGiftPicker();
+  updateShipPreview();
+  updateMatPreview();
+
+  document.getElementById('btnAddShipment').disabled = !currentUser;
+  document.getElementById('btnAddMaterial').disabled = !currentUser;
+}
+
+/* ---------- Gift items (embedded in shipment record) ---------- */
+function refreshGiftPicker(){
+  const sel = document.getElementById('giftProductPicker');
+  if(!sel) return;
+  sel.innerHTML = state.products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') || '<option value="">請先設定商品</option>';
+}
+function renderGiftRowsList(){
+  const el = document.getElementById('giftRowsList');
+  if(!el) return;
+  if(newShipGifts.length===0){ el.innerHTML = '<span style="font-size:12px;color:var(--muted);">尚未加入任何贈品</span>'; return; }
+  el.innerHTML = newShipGifts.map((g,idx)=>`<span class="mat-chip">🎁 ${escapeHtml(g.name)} × ${g.qty}<button type="button" data-idx="${idx}" class="rmGiftRow">✕</button></span>`).join('');
+  el.querySelectorAll('.rmGiftRow').forEach(b=>b.addEventListener('click', e=>{
+    newShipGifts.splice(parseInt(e.target.dataset.idx),1);
+    renderGiftRowsList();
+  }));
+}
+document.getElementById('btnAddGiftRow').addEventListener('click', ()=>{
+  const productId = document.getElementById('giftProductPicker').value;
+  const qty = parseInt(document.getElementById('giftProductQty').value);
+  if(!productId){ showToast('請選擇贈品商品', true); return; }
+  if(isNaN(qty) || qty<=0){ showToast('贈送數量需為正整數', true); return; }
+  const product = state.products.find(p=>p.id===productId);
+  const existing = newShipGifts.find(g=>g.productId===productId);
+  if(existing){ existing.qty += qty; } else { newShipGifts.push({productId, name:product.name, qty}); }
+  document.getElementById('giftProductQty').value='';
+  renderGiftRowsList();
+});
+
+function updateShipPreview(){
+  const p = state.products.find(x=>x.id===document.getElementById('shipProduct').value);
+  const type = document.getElementById('shipType').value;
+  const qty = parseFloat(document.getElementById('shipQty').value);
+  const el = document.getElementById('shipPreview');
+  if(!currentUser){ el.textContent = '請先登入才能填寫紀錄'; return; }
+  if(!p){ el.textContent = '請先於「商品設定」建立商品資料'; return; }
+  if(type==='return'){ el.textContent = `退貨紀錄：不會異動「${p.name}」庫存（目前庫存 ${fmtNum(p.stock)}）`; return; }
+  if(isNaN(qty)){ el.textContent = `目前庫存 ${fmtNum(p.stock)}，輸入數量後會自動計算出貨後庫存`; return; }
+  const result = p.stock - qty;
+  el.textContent = result<0
+    ? `⚠ 目前庫存 ${fmtNum(p.stock)}，出貨 ${fmtNum(qty)} 將導致庫存為負數，請重新確認`
+    : `目前庫存 ${fmtNum(p.stock)}，出貨後庫存將變為 ${fmtNum(result)}`;
+}
+function updateMatPreview(){
+  const m = state.materials.find(x=>x.id===document.getElementById('matSelect').value);
+  const type = document.getElementById('matType').value;
+  const qty = parseFloat(document.getElementById('matQty').value);
+  const el = document.getElementById('matPreview');
+  if(!currentUser){ el.textContent = '請先登入才能填寫包材紀錄'; return; }
+  if(!m){ el.textContent = '請先於「包材設定」建立包材資料'; return; }
+  if(isNaN(qty)){ el.textContent = `目前剩餘量 ${fmtNum(m.stock)}，單價 ${fmtMoney(m.price)}，輸入數量後自動計算金額與剩餘量`; return; }
+  const newStock = type==='in' ? m.stock+qty : m.stock-qty;
+  const amount = qty*m.price;
+  el.textContent = newStock<0
+    ? `⚠ 目前剩餘量 ${fmtNum(m.stock)}，使用 ${fmtNum(qty)} 將導致剩餘量為負數，請重新確認`
+    : `金額 ${fmtMoney(amount)}｜${type==='in'?'入庫':'使用'}後剩餘量將變為 ${fmtNum(newStock)}`;
+}
+document.getElementById('shipProduct').addEventListener('change', updateShipPreview);
+document.getElementById('shipType').addEventListener('change', updateShipPreview);
+document.getElementById('shipQty').addEventListener('input', updateShipPreview);
+document.getElementById('matSelect').addEventListener('change', updateMatPreview);
+document.getElementById('matType').addEventListener('change', updateMatPreview);
+document.getElementById('matQty').addEventListener('input', updateMatPreview);
+
+/* ---------- Core packaging-record creators ---------- */
+async function addPackagingRecord({date, materialId, type, qty, remark}){
+  const m = state.materials.find(x=>x.id===materialId);
+  if(!m){ alertWarn('找不到包材資料'); return false; }
+  if(isNaN(qty) || qty<=0){ alertWarn('數量需為正數'); return false; }
+  const newStock = type==='in' ? m.stock+qty : m.stock-qty;
+  if(newStock < 0){ alertWarn('剩餘量不足！「'+m.name+'」目前剩餘量 '+fmtNum(m.stock)+'，無法使用 '+fmtNum(qty)); return false; }
+  state.packagingRecords.unshift({
+    id:uid(), date, materialId, materialName:m.name, type, qty, price:m.price, amount:qty*m.price, remark:remark||'',
+    timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
+  });
+  m.stock = newStock;
+  m.updatedAt = nowStr(); m.updatedBy = currentUser.name;
+  await saveData();
+  return true;
+}
+// Combine multiple materials into ONE packaging record (used, type='use')
+async function addMultiPackagingRecord({date, type, items, remark}){
+  for(const it of items){
+    const m = state.materials.find(x=>x.id===it.materialId);
+    if(!m){ alertWarn('找不到包材資料'); return false; }
+    if(isNaN(it.qty) || it.qty<=0){ alertWarn('數量需為正數'); return false; }
+    const newStock = type==='in' ? m.stock+it.qty : m.stock-it.qty;
+    if(newStock < 0){ alertWarn('剩餘量不足！「'+m.name+'」目前剩餘量 '+fmtNum(m.stock)+'，無法使用 '+fmtNum(it.qty)); return false; }
+  }
+  const builtItems = items.map(it=>{
+    const m = state.materials.find(x=>x.id===it.materialId);
+    const amount = it.qty*m.price;
+    m.stock = type==='in' ? m.stock+it.qty : m.stock-it.qty;
+    m.updatedAt = nowStr(); m.updatedBy = currentUser.name;
+    return {materialId:m.id, materialName:m.name, qty:it.qty, price:m.price, amount};
+  });
+  const totalAmount = builtItems.reduce((a,b)=>a+b.amount,0);
+  state.packagingRecords.unshift({
+    id:uid(), date, type, items:builtItems, totalAmount, remark: remark||'',
+    timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
+  });
+  await saveData();
+  return true;
+}
+
+/* ---------- Shipment -> suggest packaging modal (combined into ONE record) ---------- */
+function buildMaterialSuggestions(product, qty, gifts){
+  const map = {};
+  (product.materialUsages||[]).forEach(u=>{
+    const mat = state.materials.find(m=>m.id===u.materialId);
+    if(!mat) return;
+    map[u.materialId] = (map[u.materialId]||0) + Math.round(qty*u.perUnit);
+  });
+  (gifts||[]).forEach(g=>{
+    const gp = state.products.find(p=>p.id===g.productId);
+    if(!gp) return;
+    (gp.materialUsages||[]).forEach(u=>{
+      const mat = state.materials.find(m=>m.id===u.materialId);
+      if(!mat) return;
+      map[u.materialId] = (map[u.materialId]||0) + Math.round(g.qty*u.perUnit);
+    });
+  });
+  return map;
+}
+
+function openShipMaterialModal(product, shippedQty, gifts, date){
+  const suggestionMap = buildMaterialSuggestions(product, shippedQty, gifts);
+  let rows = Object.keys(suggestionMap).map(materialId=>{
+    const mat = state.materials.find(m=>m.id===materialId);
+    return mat ? {materialId, materialName:mat.name, qty:suggestionMap[materialId]} : null;
+  }).filter(Boolean);
+  if(rows.length===0 && state.materials.length>0){
+    rows = [{materialId: state.materials[0].id, materialName: state.materials[0].name, qty: shippedQty}];
+  }
+  if(rows.length===0) return;
+
+  const root = document.getElementById('materialModalRoot');
+  const rowsHtml = rows.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F1EFE8;">
+      <input type="checkbox" id="modalRowChk${i}" checked style="width:auto;">
+      <label for="modalRowChk${i}" style="flex:1;margin:0;font-weight:700;color:var(--text);">${escapeHtml(r.materialName)}</label>
+      <input type="number" min="0" step="1" id="modalRowQty${i}" value="${r.qty}" style="width:90px;">
+    </div>`).join('');
+  root.innerHTML = `
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-box">
+        <h3>🧾 是否建立本次出貨的包材使用紀錄？</h3>
+        <p>商品「${escapeHtml(product.name)}」本次出貨 ${fmtNum(shippedQty)} 件${gifts&&gifts.length?'（含 '+gifts.length+' 項贈品）':''}，以下為系統依設定自動帶入的建議包材用量；勾選的項目將<b>合併成一筆</b>包材使用紀錄，可取消勾選或調整數量。</p>
+        <div>${rowsHtml}</div>
+        <div class="modal-form" style="margin-top:12px;">
+          <div><label>備註</label><input type="text" id="modalMatRemark" value="隨出貨自動建立"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" id="modalSkip">這次不用</button>
+          <button class="btn" id="modalConfirm">合併建立一筆包材紀錄</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modalSkip').addEventListener('click', closeMaterialModal);
+  document.getElementById('modalConfirm').addEventListener('click', async ()=>{
+    const remark = document.getElementById('modalMatRemark').value.trim();
+    const items = [];
+    rows.forEach((r,i)=>{
+      const chk = document.getElementById('modalRowChk'+i);
+      if(!chk.checked) return;
+      const qty = parseFloat(document.getElementById('modalRowQty'+i).value);
+      items.push({materialId:r.materialId, qty});
+    });
+    if(items.length===0){ closeMaterialModal(); showToast('未建立任何包材紀錄'); return; }
+    const ok = await addMultiPackagingRecord({date, type:'use', items, remark});
+    closeMaterialModal(); renderAll();
+    showToast(ok ? `已合併建立 1 筆包材使用紀錄（共 ${items.length} 項）` : '未建立任何包材紀錄');
+  });
+}
+
+/* ---------- Bulk (CSV import) -> aggregate suggestion, combined into ONE record ---------- */
+function openBulkMaterialModal(suggestionMap, date){
+  const rows = Object.keys(suggestionMap).map(materialId=>{
+    const mat = state.materials.find(m=>m.id===materialId);
+    return mat ? {materialId, materialName:mat.name, qty:suggestionMap[materialId]} : null;
+  }).filter(Boolean);
+  if(rows.length===0) return;
+  const root = document.getElementById('materialModalRoot');
+  const rowsHtml = rows.map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F1EFE8;">
+      <input type="checkbox" id="bulkRowChk${i}" checked style="width:auto;">
+      <label for="bulkRowChk${i}" style="flex:1;margin:0;font-weight:700;">${escapeHtml(r.materialName)}</label>
+      <input type="number" min="0" step="1" id="bulkRowQty${i}" value="${r.qty}" style="width:90px;">
+    </div>`).join('');
+  root.innerHTML = `
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal-box">
+        <h3>🧾 本次匯入的出貨紀錄，是否建立對應的包材使用紀錄？</h3>
+        <p>系統已依匯入的出貨商品設定，彙總計算出建議的包材使用量；勾選的項目將<b>合併成一筆</b>包材使用紀錄。</p>
+        <div>${rowsHtml}</div>
+        <div class="modal-form" style="margin-top:12px;">
+          <div><label>備註</label><input type="text" id="bulkMatRemark" value="隨出貨紀錄匯入自動建立"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn secondary" id="bulkSkip">這次不用</button>
+          <button class="btn" id="bulkConfirm">合併建立一筆包材紀錄</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('bulkSkip').addEventListener('click', closeMaterialModal);
+  document.getElementById('bulkConfirm').addEventListener('click', async ()=>{
+    const remark = document.getElementById('bulkMatRemark').value.trim();
+    const items = [];
+    rows.forEach((r,i)=>{
+      const chk = document.getElementById('bulkRowChk'+i);
+      if(!chk.checked) return;
+      const qty = parseFloat(document.getElementById('bulkRowQty'+i).value);
+      items.push({materialId:r.materialId, qty});
+    });
+    if(items.length===0){ closeMaterialModal(); showToast('未建立任何包材紀錄'); return; }
+    const ok = await addMultiPackagingRecord({date, type:'use', items, remark});
+    closeMaterialModal(); renderAll();
+    showToast(ok ? `已合併建立 1 筆包材使用紀錄（共 ${items.length} 項）` : '未建立任何包材紀錄');
+  });
+}
+
+function closeMaterialModal(){
+  const root = document.getElementById('materialModalRoot');
+  if(root) root.innerHTML='';
+}
+
+/* ---------- Add shipment (product + gifts combined into ONE record) ---------- */
+document.getElementById('btnAddShipment').addEventListener('click', async ()=>{
+  if(!requireLogin('填寫紀錄')) return;
+  const date = document.getElementById('shipDate').value || todayStr();
+  const productId = document.getElementById('shipProduct').value;
+  const shipType = document.getElementById('shipType').value;
+  const qty = parseFloat(document.getElementById('shipQty').value);
+  const remark = document.getElementById('shipRemark').value.trim();
+  const p = state.products.find(x=>x.id===productId);
+  if(!p){ showToast('請先設定商品', true); return; }
+  if(isNaN(qty) || qty<=0){ showToast('請輸入正確的數量', true); return; }
+
+  if(shipType==='return'){
+    if(newShipGifts.length>0){ showToast('退貨不支援贈品，已忽略已加入的贈品清單', true); }
+    state.shipments.unshift({
+      id:uid(), date, productId, productName:p.name, shipType, qty, remark, gifts:[],
+      timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
+    });
+    document.getElementById('shipQty').value='';
+    document.getElementById('shipRemark').value='';
+    newShipGifts = []; renderGiftRowsList();
+    await saveData(); renderAll();
+    showToast('已記錄退貨（庫存不受影響）');
+    return;
+  }
+
+  // shipType === 'ship'：主商品與所有贈品，先合併驗證庫存（防止負庫存），全部通過才建立這「一筆」紀錄
+  const deductions = {};
+  deductions[p.id] = (deductions[p.id]||0) + qty;
+  newShipGifts.forEach(g=>{ deductions[g.productId] = (deductions[g.productId]||0) + g.qty; });
+
+  for(const pid in deductions){
+    const prod = state.products.find(x=>x.id===pid);
+    if(!prod){ alertWarn('找不到商品資料'); return; }
+    if(prod.stock - deductions[pid] < 0){
+      alertWarn(`庫存不足！「${prod.name}」目前庫存 ${fmtNum(prod.stock)}，本次（含贈品）共需扣除 ${fmtNum(deductions[pid])}，請重新確認`);
+      return;
+    }
+  }
+
+  const giftsSnapshot = newShipGifts.map(g=>({productId:g.productId, productName:g.name, qty:g.qty}));
+
+  state.shipments.unshift({
+    id:uid(), date, productId:p.id, productName:p.name, shipType:'ship', qty, remark,
+    gifts: giftsSnapshot,
+    timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
+  });
+  p.stock = p.stock - qty;
+  p.updatedAt = nowStr(); p.updatedBy = currentUser.name;
+  giftsSnapshot.forEach(g=>{
+    const gp = state.products.find(x=>x.id===g.productId);
+    gp.stock = gp.stock - g.qty;
+    gp.updatedAt = nowStr(); gp.updatedBy = currentUser.name;
+  });
+
+  document.getElementById('shipQty').value='';
+  document.getElementById('shipRemark').value='';
+  newShipGifts = []; renderGiftRowsList();
+
+  await saveData(); renderAll();
+  showToast(giftsSnapshot.length>0 ? `已記錄出貨（含 ${giftsSnapshot.length} 項贈品，同一筆紀錄），庫存已自動更新` : '已記錄出貨，庫存已自動更新');
+  openShipMaterialModal(p, qty, giftsSnapshot, date);
+});
+
+document.getElementById('btnAddMaterial').addEventListener('click', async ()=>{
+  if(!requireLogin('填寫包材紀錄')) return;
+  const date = document.getElementById('matDate').value || todayStr();
+  const materialId = document.getElementById('matSelect').value;
+  const type = document.getElementById('matType').value;
+  const qty = parseFloat(document.getElementById('matQty').value);
+  const remark = document.getElementById('matRemark').value.trim();
+  const ok = await addPackagingRecord({date, materialId, type, qty, remark});
+  if(ok){
+    document.getElementById('matQty').value='';
+    document.getElementById('matRemark').value='';
+    renderAll();
+    showToast('已記錄包材'+(type==='in'?'入庫':'使用'));
+  }
+});
+
+/* ---------- Edit shipment (main record; gifts edited via dedicated modal) ---------- */
+function startEditShipment(id, tableId){
+  if(!requireLogin('編輯紀錄')) return;
+  const r = state.shipments.find(x=>x.id===id);
+  if(!r) return;
+  const row = document.querySelector(`#${tableId} tr[data-rid="${id}"]`);
+  if(!row) return;
+  const productOptions = state.products.map(p=>`<option value="${p.id}" ${p.id===r.productId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  row.innerHTML = `
+    <td class="edit-cell"><input type="date" value="${r.date}" id="eShipDate"></td>
+    <td class="edit-cell"><select id="eShipProduct">${productOptions}</select></td>
+    <td class="edit-cell"><select id="eShipType">
+      <option value="ship" ${r.shipType==='ship'?'selected':''}>出貨</option>
+      <option value="return" ${r.shipType==='return'?'selected':''}>退貨</option>
+    </select></td>
+    <td class="edit-cell"><input type="number" step="1" value="${r.qty}" id="eShipQty"></td>
+    <td style="color:var(--muted);font-size:11px;">贈品請用「編輯贈品」按鈕調整</td>
+    <td class="edit-cell"><input type="text" value="${escapeHtml(r.remark||'')}" id="eShipRemark"></td>
+    <td style="color:var(--muted);font-size:11px;">儲存後更新時間戳與庫存</td>
+    <td class="row-actions">
+      <button id="eShipSave">儲存</button>
+      <button id="eShipCancel">取消</button>
+    </td>`;
+  document.getElementById('eShipSave').addEventListener('click', async ()=>{
+    const newProductId = document.getElementById('eShipProduct').value;
+    const newType = document.getElementById('eShipType').value;
+    const newQty = parseFloat(document.getElementById('eShipQty').value);
+    const newDate = document.getElementById('eShipDate').value;
+    const newRemark = document.getElementById('eShipRemark').value.trim();
+    if(isNaN(newQty) || newQty<=0){ alertWarn('數量需為正數'); return; }
+    if(newType==='return' && r.gifts && r.gifts.length>0){ alertWarn('此筆已含贈品，無法改為退貨；請先於「編輯贈品」清空贈品清單'); return; }
+    const oldProduct = state.products.find(x=>x.id===r.productId);
+    const newProduct = state.products.find(x=>x.id===newProductId);
+    if(!newProduct){ alertWarn('找不到商品資料'); return; }
+
+    const oldDelta = r.shipType==='ship' ? r.qty : 0;
+    const newDelta = newType==='ship' ? newQty : 0;
+
+    if(oldProduct && oldProduct.id === newProduct.id){
+      const restored = oldProduct.stock + oldDelta;
+      const finalStock = restored - newDelta;
+      if(finalStock < 0){ alertWarn('庫存不足，無法儲存此修改（會導致庫存為負數）'); return; }
+      oldProduct.stock = finalStock;
+      oldProduct.updatedAt = nowStr(); oldProduct.updatedBy = currentUser.name;
+    } else {
+      const finalNewStock = newProduct.stock - newDelta;
+      if(finalNewStock < 0){ alertWarn('新選擇商品庫存不足，無法儲存此修改'); return; }
+      if(oldProduct){
+        oldProduct.stock = oldProduct.stock + oldDelta;
+        oldProduct.updatedAt = nowStr(); oldProduct.updatedBy = currentUser.name;
+      }
+      newProduct.stock = finalNewStock;
+      newProduct.updatedAt = nowStr(); newProduct.updatedBy = currentUser.name;
+    }
+    r.productId = newProduct.id;
+    r.productName = newProduct.name;
+    r.shipType = newType;
+    r.qty = newQty;
+    r.date = newDate || r.date;
+    r.remark = newRemark;
+    r.timestamp = nowStr();
+    r.byName = currentUser.name;
+    r.byAccount = currentUser.account;
+    await saveData(); renderAll();
+    showToast('紀錄已更新');
+  });
+  document.getElementById('eShipCancel').addEventListener('click', renderAll);
+}
+
+/* ---------- Edit gifts embedded in a shipment record ---------- */
+function openEditShipmentGiftsModal(id){
+  if(!requireLogin('編輯贈品')) return;
+  const r = state.shipments.find(x=>x.id===id);
+  if(!r) return;
+  if(r.shipType!=='ship'){ showToast('退貨不支援贈品', true); return; }
+  let temp = JSON.parse(JSON.stringify(r.gifts||[]));
+  const root = document.getElementById('materialModalRoot');
+
+  function rowsHtml(){
+    if(temp.length===0) return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">尚未加入任何贈品</div>';
+    return temp.map((g,idx)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="flex:1;font-size:13px;font-weight:700;">🎁 ${escapeHtml(g.productName)}</span>
+      <input type="number" min="1" step="1" value="${g.qty}" data-idx="${idx}" class="giftEditQty" style="width:90px;">
+      <button type="button" data-idx="${idx}" class="giftEditRemove" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:900;font-size:14px;">✕</button>
+    </div>`).join('');
+  }
+  function render(){
+    const options = state.products.filter(p=>!temp.some(g=>g.productId===p.id)).map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+          <h3>🎁「${escapeHtml(r.productName)}」出貨紀錄的贈品明細</h3>
+          <p>調整此筆出貨紀錄隨附的贈品品項與數量，儲存後會自動連動調整庫存（並防止負庫存）。</p>
+          <div id="giftEditRows">${rowsHtml()}</div>
+          <div class="mat-picker-row" style="margin-top:6px;">
+            <select id="giftEditAddSelect">${options || '<option value="">（無其他可加入的商品）</option>'}</select>
+            <input type="number" min="1" step="1" id="giftEditAddQty" placeholder="數量（整數）">
+            <button type="button" class="btn-outline" id="giftEditAddRow">＋加入</button>
+          </div>
+          <div class="modal-actions">
+            <button class="btn secondary" id="giftEditCancel">取消</button>
+            <button class="btn" id="giftEditSave">儲存設定</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('giftEditAddRow').addEventListener('click', ()=>{
+      const pid = document.getElementById('giftEditAddSelect').value;
+      const qty = parseInt(document.getElementById('giftEditAddQty').value);
+      if(!pid){ showToast('請選擇商品', true); return; }
+      if(isNaN(qty) || qty<=0){ showToast('數量需為正整數', true); return; }
+      const prod = state.products.find(p=>p.id===pid);
+      temp.push({productId:pid, productName:prod.name, qty});
+      render();
+    });
+    root.querySelectorAll('.giftEditQty').forEach(inp=>inp.addEventListener('change', e=>{
+      const idx = parseInt(e.target.dataset.idx);
+      const v = parseInt(e.target.value);
+      temp[idx].qty = (isNaN(v)||v<=0) ? 1 : v;
+    }));
+    root.querySelectorAll('.giftEditRemove').forEach(b=>b.addEventListener('click', e=>{
+      temp.splice(parseInt(e.target.dataset.idx),1);
+      render();
+    }));
+    document.getElementById('giftEditCancel').addEventListener('click', closeMaterialModal);
+    document.getElementById('giftEditSave').addEventListener('click', async ()=>{
+      // combine revert of old gifts + apply of new gifts into a net delta per product
+      const deltaMap = {};
+      (r.gifts||[]).forEach(g=>{ deltaMap[g.productId] = (deltaMap[g.productId]||0) + g.qty; }); // revert: add back
+      temp.forEach(g=>{ deltaMap[g.productId] = (deltaMap[g.productId]||0) - g.qty; }); // apply: subtract
+      for(const pid in deltaMap){
+        const prod = state.products.find(x=>x.id===pid);
+        if(!prod) continue;
+        const finalStock = prod.stock + deltaMap[pid];
+        if(finalStock < 0){ alertWarn('「'+prod.name+'」庫存不足，無法儲存此修改'); return; }
+      }
+      for(const pid in deltaMap){
+        const prod = state.products.find(x=>x.id===pid);
+        if(!prod) continue;
+        prod.stock = prod.stock + deltaMap[pid];
+        prod.updatedAt = nowStr(); prod.updatedBy = currentUser.name;
+      }
+      r.gifts = temp;
+      r.timestamp = nowStr(); r.byName = currentUser.name; r.byAccount = currentUser.account;
+      await saveData();
+      closeMaterialModal();
+      renderAll();
+      showToast('贈品明細已更新');
+    });
+  }
+  render();
+}
+
+/* ---------- Edit packaging record (single-item legacy OR multi-item combined) ---------- */
+function startEditMaterialRecord(id, tableId){
+  if(!requireLogin('編輯包材紀錄')) return;
+  const r = state.packagingRecords.find(x=>x.id===id);
+  if(!r) return;
+  if(r.items && r.items.length){ openEditMultiPackagingModal(id); return; }
+  const row = document.querySelector(`#${tableId} tr[data-rid="${id}"]`);
+  if(!row) return;
+  const matOptions = state.materials.map(m=>`<option value="${m.id}" ${m.id===r.materialId?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+  row.innerHTML = `
+    <td class="edit-cell"><input type="date" value="${r.date}" id="eMatDate"></td>
+    <td class="edit-cell" style="display:flex;gap:6px;">
+      <select id="eMatSelect" style="flex:2;">${matOptions}</select>
+      <input type="number" step="1" min="1" value="${r.qty}" id="eMatQty" style="flex:1;">
+    </td>
+    <td class="edit-cell"><select id="eMatType">
+      <option value="in" ${r.type==='in'?'selected':''}>入庫</option>
+      <option value="use" ${r.type==='use'?'selected':''}>使用</option>
+    </select></td>
+    <td style="color:var(--muted);font-size:11px;">金額依單價自動計算</td>
+    <td class="edit-cell"><input type="text" value="${escapeHtml(r.remark||'')}" id="eMatRemark"></td>
+    <td style="color:var(--muted);font-size:11px;">儲存後更新時間戳與剩餘量</td>
+    <td class="row-actions">
+      <button id="eMatSave">儲存</button>
+      <button id="eMatCancel">取消</button>
+    </td>`;
+  document.getElementById('eMatSave').addEventListener('click', async ()=>{
+    const newMaterialId = document.getElementById('eMatSelect').value;
+    const newType = document.getElementById('eMatType').value;
+    const newQty = parseFloat(document.getElementById('eMatQty').value);
+    const newDate = document.getElementById('eMatDate').value;
+    const newRemark = document.getElementById('eMatRemark').value.trim();
+    if(isNaN(newQty) || newQty<=0){ alertWarn('數量需為正數'); return; }
+    const oldMaterial = state.materials.find(x=>x.id===r.materialId);
+    const newMaterial = state.materials.find(x=>x.id===newMaterialId);
+    if(!newMaterial){ alertWarn('找不到包材資料'); return; }
+    let oldRestoredStock = oldMaterial ? (r.type==='in' ? oldMaterial.stock - r.qty : oldMaterial.stock + r.qty) : null;
+    if(oldMaterial && oldMaterial.id === newMaterial.id){
+      const finalStock = newType==='in' ? oldRestoredStock + newQty : oldRestoredStock - newQty;
+      if(finalStock < 0){ alertWarn('剩餘量不足，無法儲存此修改（會導致剩餘量為負數）'); return; }
+      oldMaterial.stock = finalStock;
+      oldMaterial.updatedAt = nowStr(); oldMaterial.updatedBy = currentUser.name;
+    } else {
+      const finalNewStock = newType==='in' ? newMaterial.stock + newQty : newMaterial.stock - newQty;
+      if(finalNewStock < 0){ alertWarn('新選擇包材剩餘量不足，無法儲存此修改'); return; }
+      if(oldMaterial){ oldMaterial.stock = oldRestoredStock; oldMaterial.updatedAt = nowStr(); oldMaterial.updatedBy = currentUser.name; }
+      newMaterial.stock = finalNewStock;
+      newMaterial.updatedAt = nowStr(); newMaterial.updatedBy = currentUser.name;
+    }
+    r.materialId = newMaterial.id;
+    r.materialName = newMaterial.name;
+    r.type = newType;
+    r.qty = newQty;
+    r.price = newMaterial.price;
+    r.amount = newQty * newMaterial.price;
+    r.date = newDate || r.date;
+    r.remark = newRemark;
+    r.timestamp = nowStr();
+    r.byName = currentUser.name;
+    r.byAccount = currentUser.account;
+    await saveData(); renderAll();
+    showToast('包材紀錄已更新');
+  });
+  document.getElementById('eMatCancel').addEventListener('click', renderAll);
+}
+
+function openEditMultiPackagingModal(id){
+  const r = state.packagingRecords.find(x=>x.id===id);
+  if(!r) return;
+  let temp = JSON.parse(JSON.stringify(r.items));
+  let tempType = r.type;
+  let tempDate = r.date;
+  let tempRemark = r.remark||'';
+  const root = document.getElementById('materialModalRoot');
+
+  function rowsHtml(){
+    if(temp.length===0) return '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">尚未設定包材項目</div>';
+    return temp.map((it,idx)=>{
+      const mat = state.materials.find(m=>m.id===it.materialId);
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="flex:1;font-size:13px;font-weight:700;">${escapeHtml(mat?mat.name:it.materialName)}</span>
+        <input type="number" min="1" step="1" value="${it.qty}" data-idx="${idx}" class="mpEditQty" style="width:90px;">
+        <button type="button" data-idx="${idx}" class="mpEditRemove" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:900;font-size:14px;">✕</button>
+      </div>`;
+    }).join('');
+  }
+  function render(){
+    const options = state.materials.filter(m=>!temp.some(it=>it.materialId===m.id)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+    root.innerHTML = `
+      <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+          <h3>🧾 編輯合併包材紀錄</h3>
+          <p>此筆為出貨自動合併建立的包材使用紀錄，可調整日期、類型、各項數量與備註。</p>
+          <div class="modal-form">
+            <div><label>日期</label><input type="date" value="${tempDate}" id="mpEditDate"></div>
+            <div><label>類型</label><select id="mpEditType">
+              <option value="in" ${tempType==='in'?'selected':''}>入庫</option>
+              <option value="use" ${tempType==='use'?'selected':''}>使用</option>
+            </select></div>
+          </div>
+          <div id="mpEditRows" style="margin-top:12px;">${rowsHtml()}</div>
+          <div class="mat-picker-row" style="margin-top:6px;">
+            <select id="mpEditAddSelect">${options || '<option value="">（無其他可加入的包材）</option>'}</select>
+            <input type="number" min="1" step="1" id="mpEditAddQty" placeholder="數量（整數）">
+            <button type="button" class="btn-outline" id="mpEditAddRow">＋加入</button>
+          </div>
+          <div class="modal-form" style="margin-top:12px;">
+            <div><label>備註</label><input type="text" value="${escapeHtml(tempRemark)}" id="mpEditRemark"></div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn secondary" id="mpEditCancel">取消</button>
+            <button class="btn" id="mpEditSave">儲存</button>
+          </div>
+        </div>
+      </div>`;
+    document.getElementById('mpEditAddRow').addEventListener('click', ()=>{
+      const matId = document.getElementById('mpEditAddSelect').value;
+      const qty = parseInt(document.getElementById('mpEditAddQty').value);
+      if(!matId){ showToast('請選擇包材', true); return; }
+      if(isNaN(qty) || qty<=0){ showToast('數量需為正整數', true); return; }
+      temp.push({materialId:matId, qty});
+      render();
+    });
+    root.querySelectorAll('.mpEditQty').forEach(inp=>inp.addEventListener('change', e=>{
+      const idx = parseInt(e.target.dataset.idx);
+      const v = parseInt(e.target.value);
+      temp[idx].qty = (isNaN(v)||v<=0) ? 1 : v;
+    }));
+    root.querySelectorAll('.mpEditRemove').forEach(b=>b.addEventListener('click', e=>{
+      temp.splice(parseInt(e.target.dataset.idx),1);
+      render();
+    }));
+    document.getElementById('mpEditType').addEventListener('change', e=>{ tempType = e.target.value; });
+    document.getElementById('mpEditCancel').addEventListener('click', closeMaterialModal);
+    document.getElementById('mpEditSave').addEventListener('click', async ()=>{
+      const newDate = document.getElementById('mpEditDate').value || tempDate;
+      const newType = document.getElementById('mpEditType').value;
+      const newRemark = document.getElementById('mpEditRemark').value.trim();
+      if(temp.length===0){ alertWarn('至少需要一項包材'); return; }
+      // net delta: revert old, apply new
+      const deltaMap = {};
+      r.items.forEach(it=>{ deltaMap[it.materialId] = (deltaMap[it.materialId]||0) + (r.type==='in' ? -it.qty : it.qty); });
+      temp.forEach(it=>{ deltaMap[it.materialId] = (deltaMap[it.materialId]||0) + (newType==='in' ? it.qty : -it.qty); });
+      for(const mid in deltaMap){
+        const m = state.materials.find(x=>x.id===mid);
+        if(!m) continue;
+        const finalStock = m.stock + deltaMap[mid];
+        if(finalStock < 0){ alertWarn('「'+m.name+'」剩餘量不足，無法儲存此修改'); return; }
+      }
+      for(const mid in deltaMap){
+        const m = state.materials.find(x=>x.id===mid);
+        if(!m) continue;
+        m.stock = m.stock + deltaMap[mid];
+        m.updatedAt = nowStr(); m.updatedBy = currentUser.name;
+      }
+      const builtItems = temp.map(it=>{
+        const m = state.materials.find(x=>x.id===it.materialId);
+        return {materialId:m.id, materialName:m.name, qty:it.qty, price:m.price, amount:it.qty*m.price};
+      });
+      r.items = builtItems;
+      r.totalAmount = builtItems.reduce((a,b)=>a+b.amount,0);
+      r.type = newType;
+      r.date = newDate;
+      r.remark = newRemark;
+      r.timestamp = nowStr();
+      r.byName = currentUser.name;
+      r.byAccount = currentUser.account;
+      await saveData();
+      closeMaterialModal();
+      renderAll();
+      showToast('合併包材紀錄已更新');
+    });
+  }
+  render();
+}
+
+/* ---------- Shipment / Packaging CSV ---------- */
+document.getElementById('btnExportShip').addEventListener('click', ()=>{
+  const headers = ['日期','商品名稱','類型','數量','贈品明細(格式:名稱:數量;名稱:數量)','備註','填寫人','時間戳'];
+  const rows = state.shipments.map(r=>[r.date, r.productName, r.shipType==='ship'?'出貨':'退貨', r.qty, encodeGifts(r.gifts), r.remark||'', r.byName, r.timestamp]);
+  downloadCSV('ecoco_出貨紀錄_'+todayStr()+'.csv', buildCSV(headers, rows));
+  showToast('已匯出出貨紀錄 CSV');
+});
+document.getElementById('btnTemplateShip').addEventListener('click', ()=>{
+  const headers = ['日期','商品名稱','類型(出貨/退貨)','數量','備註'];
+  const rows = [[todayStr(),'回收酒瓶600ml','出貨','10','範例資料，請刪除後依實際資料建立']];
+  downloadCSV('ecoco_出貨紀錄匯入範本.csv', buildCSV(headers, rows));
+  showToast('已下載出貨紀錄匯入範本');
+});
+document.getElementById('btnImportShipTrigger').addEventListener('click', ()=>{
+  if(!requireLogin('匯入出貨紀錄')) return;
+  document.getElementById('importShipFile').click();
+});
+document.getElementById('importShipFile').addEventListener('change', function(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev=>{
+    const rows = parseCSV(ev.target.result);
+    if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    let added=0, skipped=0;
+    const suggestionMap = {};
+    for(let i=1;i<rows.length;i++){
+      const c = rows[i];
+      const date = (c[0]||'').trim() || todayStr();
+      const productName = (c[1]||'').trim();
+      const typeText = (c[2]||'').trim();
+      const qty = parseFloat(c[3]);
+      const remark = (c[4]||'').trim();
+      const p = state.products.find(x=>x.name===productName);
+      if(!p || isNaN(qty) || qty<=0){ skipped++; continue; }
+      const shipType = typeText==='退貨' ? 'return' : 'ship';
+      if(shipType==='ship' && p.stock - qty < 0){ skipped++; continue; }
+      state.shipments.unshift({
+        id:uid(), date, productId:p.id, productName:p.name, shipType, qty, remark, gifts:[],
+        timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
+      });
+      if(shipType==='ship'){
+        p.stock -= qty; p.updatedAt=nowStr(); p.updatedBy=currentUser.name;
+        if(p.materialUsages && p.materialUsages.length){
+          p.materialUsages.forEach(u=>{
+            const addQty = Math.round(qty*u.perUnit);
+            suggestionMap[u.materialId] = (suggestionMap[u.materialId]||0) + addQty;
+          });
+        }
+      }
+      added++;
+    }
+    await saveData(); renderAll();
+    showToast(`出貨紀錄匯入完成：新增 ${added} 筆、略過 ${skipped} 筆（商品不存在或庫存不足）`);
+    e.target.value='';
+    if(Object.keys(suggestionMap).length>0){
+      openBulkMaterialModal(suggestionMap, todayStr());
+    }
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+document.getElementById('btnExportMat').addEventListener('click', ()=>{
+  const headers = ['日期','包材明細','類型','金額','備註','填寫人','時間戳'];
+  const rows = state.packagingRecords.map(r=>{
+    if(r.items && r.items.length){
+      const label = r.items.map(it=>`${it.materialName}×${it.qty}`).join('；');
+      return [r.date, label, r.type==='in'?'入庫':'使用', r.totalAmount, r.remark||'', r.byName, r.timestamp];
+    }
+    return [r.date, `${r.materialName}×${r.qty}`, r.type==='in'?'入庫':'使用', r.amount, r.remark||'', r.byName, r.timestamp];
+  });
+  downloadCSV('ecoco_包材紀錄_'+todayStr()+'.csv', buildCSV(headers, rows));
+  showToast('已匯出包材紀錄 CSV');
+});
+document.getElementById('btnTemplateMat').addEventListener('click', ()=>{
+  const headers = ['日期','包材名稱','類型(入庫/使用)','數量','金額(可留空自動計算)','備註'];
+  const rows = [[todayStr(),'紙箱A','使用','5','','範例資料，請刪除後依實際資料建立']];
+  downloadCSV('ecoco_包材紀錄匯入範本.csv', buildCSV(headers, rows));
+  showToast('已下載包材紀錄匯入範本');
+});
+document.getElementById('btnImportMatTrigger').addEventListener('click', ()=>{
+  if(!requireLogin('匯入包材紀錄')) return;
+  document.getElementById('importMatFile').click();
+});
+document.getElementById('importMatFile').addEventListener('change', function(e){
+  const file = e.target.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async ev=>{
+    const rows = parseCSV(ev.target.result);
+    if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    let added=0, skipped=0;
+    for(let i=1;i<rows.length;i++){
+      const c = rows[i];
+      const date = (c[0]||'').trim() || todayStr();
+      const materialName = (c[1]||'').trim();
+      const typeText = (c[2]||'').trim();
+      const qty = parseFloat(c[3]);
+      const remark = (c[5]||'').trim();
+      const m = state.materials.find(x=>x.name===materialName);
+      if(!m || isNaN(qty) || qty<=0){ skipped++; continue; }
+      const type = typeText==='入庫' ? 'in' : 'use';
+      const newStock = type==='in' ? m.stock+qty : m.stock-qty;
+      if(newStock<0){ skipped++; continue; }
+      state.packagingRecords.unshift({
+        id:uid(), date, materialId:m.id, materialName:m.name, type, qty, price:m.price, amount:qty*m.price, remark,
+        timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
+      });
+      m.stock = newStock; m.updatedAt=nowStr(); m.updatedBy=currentUser.name;
+      added++;
+    }
+    await saveData(); renderAll();
+    showToast(`包材紀錄匯入完成：新增 ${added} 筆、略過 ${skipped} 筆（包材不存在或剩餘量不足）`);
+    e.target.value='';
+  };
+  reader.readAsText(file, 'UTF-8');
+});
+
+/* ---------- Render records tables ---------- */
+function renderRecordTables(){
+  fillShipmentTable('shipmentTableFull','pagerShipFull', state.shipments, true, 'shipFull');
+  fillMaterialTable('materialTableFull','pagerMatFull', state.packagingRecords, true, 'matFull');
+
+  const shipFiltered = state.shipments.filter(s=>inRange(s.date));
+  const matFiltered = state.packagingRecords.filter(m=>inRange(m.date));
+  fillShipmentTable('shipmentTableDash','pagerShipDash', shipFiltered, false, 'shipDash');
+  fillMaterialTable('materialTableDash','pagerMatDash', matFiltered, false, 'matDash');
+}
+
+function giftsLabel(gifts){
+  if(!gifts || gifts.length===0) return '—';
+  return gifts.map(g=>`🎁${escapeHtml(g.productName)}×${fmtNum(g.qty)}`).join('、');
+}
+
+function fillShipmentTable(tableId, pagerId, fullList, editable, pagerKey){
+  const tbody = document.querySelector('#'+tableId+' tbody');
+  tbody.innerHTML='';
+  if(fullList.length===0){
+    tbody.innerHTML = `<tr><td colspan="${editable?8:7}" class="empty-hint">尚無紀錄</td></tr>`;
+    renderPager(pagerId, pagerKey, 0);
+    return;
+  }
+  const {slice} = paginate(fullList, pagerKey);
+  slice.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-rid', r.id);
+    tr.innerHTML = `<td>${r.date}</td><td>${escapeHtml(r.productName)}</td>
+      <td><span class="tag ${r.shipType}">${r.shipType==='ship'?'出貨':'退貨'}</span></td>
+      <td>${fmtNum(r.qty)}</td>
+      <td class="gift-text">${giftsLabel(r.gifts)}</td>
+      <td class="remark-text">${escapeHtml(r.remark||'—')}</td>
+      <td>${whoWhenHtml(r.byName, r.timestamp)}</td>`
+      + (editable ? `<td class="row-actions">
+          <button data-id="${r.id}" class="editShip">編輯</button>
+          ${r.shipType==='ship' ? `<button data-id="${r.id}" class="editGifts">編輯贈品</button>` : ''}
+          <button data-id="${r.id}" class="delShip delBtn" ${currentUser&&currentUser.isAdmin?'':'disabled'}>刪除</button>
+        </td>` : '');
+    tbody.appendChild(tr);
+  });
+  if(editable){
+    tbody.querySelectorAll('.editShip').forEach(b=>b.addEventListener('click', e=>startEditShipment(e.target.dataset.id, tableId)));
+    tbody.querySelectorAll('.editGifts').forEach(b=>b.addEventListener('click', e=>openEditShipmentGiftsModal(e.target.dataset.id)));
+    tbody.querySelectorAll('.delShip').forEach(b=>b.addEventListener('click', async e=>{
+      if(!requireAdmin()) return;
+      const rec = state.shipments.find(x=>x.id===e.target.dataset.id);
+      if(!confirm('刪除此筆紀錄？（若為出貨，商品與贈品庫存都會自動加回）')) return;
+      if(rec.shipType==='ship'){
+        const p = state.products.find(x=>x.id===rec.productId);
+        if(p){ p.stock = p.stock + rec.qty; p.updatedAt=nowStr(); p.updatedBy=currentUser.name; }
+        (rec.gifts||[]).forEach(g=>{
+          const gp = state.products.find(x=>x.id===g.productId);
+          if(gp){ gp.stock = gp.stock + g.qty; gp.updatedAt=nowStr(); gp.updatedBy=currentUser.name; }
+        });
+      }
+      state.shipments = state.shipments.filter(x=>x.id!==e.target.dataset.id);
+      await saveData(); renderAll();
+    }));
+  }
+  renderPager(pagerId, pagerKey, fullList.length);
+}
+
+function fillMaterialTable(tableId, pagerId, fullList, editable, pagerKey){
+  const tbody = document.querySelector('#'+tableId+' tbody');
+  tbody.innerHTML='';
+  if(fullList.length===0){
+    tbody.innerHTML = `<tr><td colspan="${editable?7:6}" class="empty-hint">尚無包材紀錄</td></tr>`;
+    renderPager(pagerId, pagerKey, 0);
+    return;
+  }
+  const {slice} = paginate(fullList, pagerKey);
+  slice.forEach(r=>{
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-rid', r.id);
+    const isMulti = r.items && r.items.length;
+    const itemsLabel = isMulti ? r.items.map(it=>`${escapeHtml(it.materialName)}×${fmtNum(it.qty)}`).join('、') : escapeHtml(r.materialName)+'×'+fmtNum(r.qty);
+    const amount = isMulti ? r.totalAmount : r.amount;
+    tr.innerHTML = `<td>${r.date}</td>
+      <td class="items-text">${itemsLabel}</td>
+      <td><span class="tag ${r.type}">${r.type==='in'?'入庫':'使用'}</span></td>
+      <td>${fmtMoney(amount)}</td>
+      <td class="remark-text">${escapeHtml(r.remark||'—')}</td>
+      <td>${whoWhenHtml(r.byName, r.timestamp)}</td>`
+      + (editable ? `<td class="row-actions">
+          <button data-id="${r.id}" class="editMat">編輯</button>
+          <button data-id="${r.id}" class="delMat delBtn" ${currentUser&&currentUser.isAdmin?'':'disabled'}>刪除</button>
+        </td>` : '');
+    tbody.appendChild(tr);
+  });
+  if(editable){
+    tbody.querySelectorAll('.editMat').forEach(b=>b.addEventListener('click', e=>startEditMaterialRecord(e.target.dataset.id, tableId)));
+    tbody.querySelectorAll('.delMat').forEach(b=>b.addEventListener('click', async e=>{
+      if(!requireAdmin()) return;
+      const rec = state.packagingRecords.find(x=>x.id===e.target.dataset.id);
+      if(rec.items && rec.items.length){
+        for(const it of rec.items){
+          const m = state.materials.find(x=>x.id===it.materialId);
+          const resultStock = m ? (rec.type==='in' ? m.stock-it.qty : m.stock+it.qty) : 0;
+          if(m && resultStock<0){ alertWarn('無法刪除：刪除後「'+m.name+'」剩餘量將為負數，請先確認庫存資料'); return; }
+        }
+        if(!confirm('刪除此筆包材紀錄？（共 '+rec.items.length+' 項，剩餘量將自動回復）')) return;
+        rec.items.forEach(it=>{
+          const m = state.materials.find(x=>x.id===it.materialId);
+          if(m){ m.stock = rec.type==='in' ? m.stock-it.qty : m.stock+it.qty; m.updatedAt=nowStr(); m.updatedBy=currentUser.name; }
+        });
+        state.packagingRecords = state.packagingRecords.filter(x=>x.id!==e.target.dataset.id);
+        await saveData(); renderAll();
+        return;
+      }
+      const m = state.materials.find(x=>x.id===rec.materialId);
+      const resultStock = m ? (rec.type==='in' ? m.stock-rec.qty : m.stock+rec.qty) : 0;
+      if(m && resultStock < 0){ alertWarn('無法刪除：刪除後剩餘量將為負數，請先確認庫存資料'); return; }
+      if(!confirm('刪除此筆包材紀錄？（剩餘量將自動回復）')) return;
+      if(m){ m.stock = resultStock; m.updatedAt=nowStr(); m.updatedBy=currentUser.name; }
+      state.packagingRecords = state.packagingRecords.filter(x=>x.id!==e.target.dataset.id);
+      await saveData(); renderAll();
+    }));
+  }
+  renderPager(pagerId, pagerKey, fullList.length);
+}
+
+/* ---------- Dashboard summary ---------- */
+function renderSummary(){
+  const sum = (arr,key)=>arr.reduce((a,b)=>a+b[key],0);
+
+  const shipInRangeAll = state.shipments.filter(s=>inRange(s.date));
+  const shipOnly = shipInRangeAll.filter(s=>s.shipType==='ship');
+  const returnOnly = shipInRangeAll.filter(s=>s.shipType==='return');
+  const giftQtyTotal = shipOnly.reduce((a,s)=>a+(s.gifts||[]).reduce((x,g)=>x+g.qty,0),0);
+  const giftLineTotal = shipOnly.reduce((a,s)=>a+(s.gifts||[]).length,0);
+  const lowStockProducts = state.products.filter(p=>p.safety>0 && p.stock<=p.safety).length;
+  const totalProductStock = sum(state.products,'stock');
+
+  document.getElementById('summaryProduct').innerHTML = [
+    {label:'區間出貨數量', value:fmtNum(sum(shipOnly,'qty')), sub:`共 ${shipOnly.length} 筆`, cls:''},
+    {label:'區間贈品數量', value:fmtNum(giftQtyTotal), sub:`共 ${giftLineTotal} 項（隨出貨扣庫存）`, cls:'yellow'},
+    {label:'區間退貨筆數', value:fmtNum(returnOnly.length), sub:`共 ${fmtNum(sum(returnOnly,'qty'))} 件（不計入庫存）`, cls:'yellow'},
+    {label:'商品目前總庫存', value:fmtNum(totalProductStock), sub:`共 ${state.products.length} 項商品`, cls:'blue'},
+    {label:'商品低庫存警示', value:fmtNum(lowStockProducts), sub:'低於安全庫存品項', cls:'danger'},
+  ].map(cardHtml).join('');
+
+  const matInRange = state.packagingRecords.filter(m=>inRange(m.date));
+  const matQty = r=> r.items && r.items.length ? r.items.reduce((a,it)=>a+it.qty,0) : r.qty;
+  const matAmt = r=> r.items && r.items.length ? r.totalAmount : r.amount;
+  const useInRange = matInRange.filter(m=>m.type==='use');
+  const inInRange = matInRange.filter(m=>m.type==='in');
+  const lowStockMaterials = state.materials.filter(m=>m.safety>0 && m.stock<=m.safety).length;
+  const totalMaterialStock = sum(state.materials,'stock');
+
+  document.getElementById('summaryMaterial').innerHTML = [
+    {label:'區間使用量', value:fmtNum(useInRange.reduce((a,r)=>a+matQty(r),0)), sub:`成本 ${fmtMoney(useInRange.reduce((a,r)=>a+matAmt(r),0))}`, cls:''},
+    {label:'區間入庫量', value:fmtNum(inInRange.reduce((a,r)=>a+matQty(r),0)), sub:`成本 ${fmtMoney(inInRange.reduce((a,r)=>a+matAmt(r),0))}`, cls:'yellow'},
+    {label:'包材目前總剩餘量', value:fmtNum(totalMaterialStock), sub:`共 ${state.materials.length} 項包材`, cls:'blue'},
+    {label:'包材低庫存警示', value:fmtNum(lowStockMaterials), sub:'低於安全庫存品項', cls:'danger'},
+  ].map(cardHtml).join('');
+}
+
+function cardHtml(c){
+  return `<div class="stat-card ${c.cls}">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value}</div>
+      <div class="stat-sub">${c.sub}</div>
+    </div>`;
+}
+
+function stockCardHtml(item, unitLabel){
+  const safety = item.safety || 0;
+  let status = 'ok', label='安全', pct = 100;
+  if(safety>0){
+    pct = Math.max(0, Math.min(100, (item.stock/ (safety*2)) *100));
+    if(item.stock<=safety){ status='danger'; label='低於安全庫存'; }
+    else if(item.stock<=safety*1.5){ status='warn'; label='接近安全庫存'; }
+  }
+  return `<div class="stock-card">
+      <span class="badge ${status}">${label}</span>
+      <h3>${escapeHtml(item.name)}</h3>
+      <div class="stock-row"><span>${unitLabel}</span><b>${fmtNum(item.stock)}</b></div>
+      <div class="stock-row"><span>安全庫存</span><b>${fmtNum(safety)}</b></div>
+      <div class="bar-track"><div class="bar-fill ${status==='ok'?'':status}" style="width:${pct}%"></div></div>
+    </div>`;
+}
+
+function renderStockGrid(){
+  const searchP = document.getElementById('stockProductSearch');
+  if(searchP) stockFilter.product = searchP.value.trim().toLowerCase();
+  const searchM = document.getElementById('stockMaterialSearch');
+  if(searchM) stockFilter.material = searchM.value.trim().toLowerCase();
+
+  const filteredProducts = stockFilter.product
+    ? state.products.filter(p=>p.name.toLowerCase().includes(stockFilter.product))
+    : state.products;
+  const wrap = document.getElementById('stockGrid');
+  if(filteredProducts.length===0){
+    wrap.innerHTML = state.products.length===0
+      ? '<div class="empty-hint">尚未設定商品，請至「商品設定」新增</div>'
+      : '<div class="empty-hint">找不到符合關鍵字的商品</div>';
+    renderPager('pagerStockProducts','stockProducts',0);
+  } else {
+    const {slice} = paginate(filteredProducts, 'stockProducts');
+    wrap.innerHTML = slice.map(p=>stockCardHtml(p,'目前庫存')).join('');
+    renderPager('pagerStockProducts','stockProducts', filteredProducts.length);
+  }
+
+  const filteredMaterials = stockFilter.material
+    ? state.materials.filter(m=>m.name.toLowerCase().includes(stockFilter.material))
+    : state.materials;
+  const matWrap = document.getElementById('matStockGrid');
+  if(filteredMaterials.length===0){
+    matWrap.innerHTML = state.materials.length===0
+      ? '<div class="empty-hint">尚未設定包材，請至「包材設定」新增</div>'
+      : '<div class="empty-hint">找不到符合關鍵字的包材</div>';
+    renderPager('pagerStockMaterials','stockMaterials',0);
+  } else {
+    const {slice} = paginate(filteredMaterials, 'stockMaterials');
+    matWrap.innerHTML = slice.map(m=>stockCardHtml(m,'剩餘量')).join('');
+    renderPager('pagerStockMaterials','stockMaterials', filteredMaterials.length);
+  }
+}
+document.getElementById('stockProductSearch').addEventListener('input', ()=>{
+  pagers.stockProducts.page = 1;
+  renderStockGrid();
+});
+document.getElementById('stockMaterialSearch').addEventListener('input', ()=>{
+  pagers.stockMaterials.page = 1;
+  renderStockGrid();
+});
+
+function renderAll(){
+  renderAuth();
+  renderProductTable();
+  renderMaterialDefTable();
+  refreshDropdowns();
+  renderRecordTables();
+  renderSummary();
+  renderStockGrid();
+}
+
+document.getElementById('shipDate').value = todayStr();
+document.getElementById('matDate').value = todayStr();
+
+loadData();
+</script>
+</body>
+</html>
