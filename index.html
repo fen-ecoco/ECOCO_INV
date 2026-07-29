@@ -313,11 +313,12 @@
           <label>快速選擇</label>
           <select id="rangeMode">
             <option value="today">今日</option>
-            <option value="week" selected>本週（日～六）</option>
+            <option value="week" selected>本週</option>
             <option value="month">本月</option>
             <option value="all">全部區間</option>
             <option value="custom">自訂區間</option>
           </select>
+          <div id="rangeModeHint" style="color:#9CA3AF;font-size:8pt;margin-top:4px;"></div>
         </div>
         <div id="customStartWrap" style="display:none;"><label>起始日期</label><input type="date" id="rangeStart"></div>
         <div id="customEndWrap" style="display:none;"><label>結束日期</label><input type="date" id="rangeEnd"></div>
@@ -336,14 +337,14 @@
 
     <div class="section-title"><span class="dot"></span>商品即時庫存</div>
     <div class="card">
-      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 搜尋商品名稱關鍵字">
+      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 搜尋商品名稱／目前庫存／安全庫存">
       <div id="stockGrid" class="stock-grid"></div>
       <div id="pagerStockProducts"></div>
     </div>
 
     <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
     <div class="card">
-      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 搜尋包材名稱關鍵字">
+      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 搜尋包材名稱／剩餘量／安全庫存">
       <div id="matStockGrid" class="stock-grid"></div>
       <div id="pagerStockMaterials"></div>
     </div>
@@ -571,6 +572,12 @@ let pagers = {
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 function fmtNum(n){ return (n ?? 0).toLocaleString('zh-TW'); }
 function fmtMoney(n){ return 'NT$' + (Math.round((n||0)*100)/100).toLocaleString('zh-TW'); }
+function stockValueHtml(value, safety){
+  if(safety>0 && value<=safety){
+    return `<span style="color:var(--danger);font-weight:900;">${fmtNum(value)}</span>`;
+  }
+  return fmtNum(value);
+}
 function pad2(n){ return String(n).padStart(2,'0'); }
 
 function taiwanNowParts(){
@@ -796,36 +803,53 @@ document.getElementById('rangeMode').addEventListener('change', e=>{
   const isCustom = e.target.value==='custom';
   document.getElementById('customStartWrap').style.display = isCustom ? '' : 'none';
   document.getElementById('customEndWrap').style.display = isCustom ? '' : 'none';
+  updateRangeModeHint();
 });
 document.getElementById('btnApplyRange').addEventListener('click', ()=>{
   rangeState.mode = document.getElementById('rangeMode').value;
   rangeState.start = document.getElementById('rangeStart').value || null;
   rangeState.end = document.getElementById('rangeEnd').value || null;
   pagers.shipDash.page = 1; pagers.matDash.page = 1;
+  updateRangeModeHint();
   renderAll();
 });
 
-function computeRangeBounds(){
+function computeRangeBounds(mode){
+  mode = mode || rangeState.mode;
   const {y,m,day,dow} = taiwanNowParts();
   let startStr, endStr;
-  if(rangeState.mode==='today'){
+  if(mode==='today'){
     startStr = ymd(y,m,day); endStr = startStr;
-  } else if(rangeState.mode==='week'){
+  } else if(mode==='week'){
     const sunday = new Date(Date.UTC(y,m,day-dow));
     const saturday = new Date(Date.UTC(y,m,day-dow+6));
     startStr = ymd(sunday.getUTCFullYear(), sunday.getUTCMonth(), sunday.getUTCDate());
     endStr = ymd(saturday.getUTCFullYear(), saturday.getUTCMonth(), saturday.getUTCDate());
-  } else if(rangeState.mode==='month'){
+  } else if(mode==='month'){
     const lastDay = new Date(Date.UTC(y, m+1, 0)).getUTCDate();
     startStr = ymd(y,m,1);
     endStr = ymd(y,m,lastDay);
-  } else if(rangeState.mode==='all'){
+  } else if(mode==='all'){
     startStr = ALL_RANGE_START; endStr = ALL_RANGE_END;
   } else {
     startStr = rangeState.start || ALL_RANGE_START;
     endStr = rangeState.end || ALL_RANGE_END;
   }
   return {startStr, endStr};
+}
+function updateRangeModeHint(){
+  const el = document.getElementById('rangeModeHint');
+  if(!el) return;
+  const mode = document.getElementById('rangeMode').value;
+  if(mode==='today'){
+    const {startStr} = computeRangeBounds('today');
+    el.textContent = startStr;
+  } else if(mode==='week' || mode==='month'){
+    const {startStr,endStr} = computeRangeBounds(mode);
+    el.textContent = startStr + '~' + endStr.slice(5);
+  } else {
+    el.textContent = '';
+  }
 }
 function inRange(dateStr){
   const {startStr,endStr} = computeRangeBounds();
@@ -1006,7 +1030,7 @@ function renderProductTable(){
     tr.setAttribute('data-rid', p.id);
     tr.innerHTML = `<td>${escapeHtml(p.name)}</td>
       <td>${escapeHtml(p.size||'—')}</td>
-      <td>${fmtNum(p.stock)}</td><td>${fmtNum(p.safety)}</td>
+      <td>${stockValueHtml(p.stock, p.safety)}</td><td>${fmtNum(p.safety)}</td>
       <td class="remark-text">${escapeHtml(p.remark||'—')}</td>
       <td>${whoWhenHtml(p.updatedBy,p.updatedAt)}</td>
       <td style="font-size:12px;">${materialUsagesLabel(p)}</td>
@@ -1232,7 +1256,7 @@ function renderMaterialDefTable(){
     tr.innerHTML = `<td>${escapeHtml(m.name)}</td>
       <td>${escapeHtml(m.spec||'—')}</td>
       <td>${fmtMoney(m.price)}</td>
-      <td>${fmtNum(m.stock)}</td><td>${fmtNum(m.safety)}</td>
+      <td>${stockValueHtml(m.stock, m.safety)}</td><td>${fmtNum(m.safety)}</td>
       <td class="remark-text">${escapeHtml(m.remark||'—')}</td>
       <td>${whoWhenHtml(m.updatedBy,m.updatedAt)}</td>
       <td class="row-actions">
@@ -2301,6 +2325,13 @@ function stockCardHtml(item, unitLabel){
     </div>`;
 }
 
+function itemMatchesStockSearch(item, query){
+  if(!query) return true;
+  return (item.name||'').toLowerCase().includes(query)
+    || String(item.stock ?? '').includes(query)
+    || String(item.safety ?? '').includes(query);
+}
+
 function renderStockGrid(){
   const searchP = document.getElementById('stockProductSearch');
   if(searchP) stockFilter.product = searchP.value.trim().toLowerCase();
@@ -2308,13 +2339,13 @@ function renderStockGrid(){
   if(searchM) stockFilter.material = searchM.value.trim().toLowerCase();
 
   const filteredProducts = stockFilter.product
-    ? state.products.filter(p=>p.name.toLowerCase().includes(stockFilter.product))
+    ? state.products.filter(p=>itemMatchesStockSearch(p, stockFilter.product))
     : state.products;
   const wrap = document.getElementById('stockGrid');
   if(filteredProducts.length===0){
     wrap.innerHTML = state.products.length===0
       ? '<div class="empty-hint">尚未設定商品，請至「商品設定」新增</div>'
-      : '<div class="empty-hint">找不到符合關鍵字的商品</div>';
+      : '<div class="empty-hint">找不到符合搜尋條件的商品</div>';
     renderPager('pagerStockProducts','stockProducts',0);
   } else {
     const {slice} = paginate(filteredProducts, 'stockProducts');
@@ -2323,13 +2354,13 @@ function renderStockGrid(){
   }
 
   const filteredMaterials = stockFilter.material
-    ? state.materials.filter(m=>m.name.toLowerCase().includes(stockFilter.material))
+    ? state.materials.filter(m=>itemMatchesStockSearch(m, stockFilter.material))
     : state.materials;
   const matWrap = document.getElementById('matStockGrid');
   if(filteredMaterials.length===0){
     matWrap.innerHTML = state.materials.length===0
       ? '<div class="empty-hint">尚未設定包材，請至「包材設定」新增</div>'
-      : '<div class="empty-hint">找不到符合關鍵字的包材</div>';
+      : '<div class="empty-hint">找不到符合搜尋條件的包材</div>';
     renderPager('pagerStockMaterials','stockMaterials',0);
   } else {
     const {slice} = paginate(filteredMaterials, 'stockMaterials');
@@ -2357,6 +2388,7 @@ function renderAll(){
 }
 
 document.getElementById('shipDate').value = todayStr();
+updateRangeModeHint();
 document.getElementById('matDate').value = todayStr();
 
 loadData();
