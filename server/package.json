@@ -1,0 +1,15 @@
+{
+  "name": "ecoco-inv-server",
+  "version": "1.0.0",
+  "description": "ECOCO 出貨/包材/庫存儀表板 - 後端儲存 API（取代 Claude.ai window.storage，供獨立部署使用）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "ECOCO",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}

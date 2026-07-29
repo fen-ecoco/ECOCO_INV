@@ -512,6 +512,12 @@
 <div id="materialModalRoot"></div>
 <div class="toast" id="toast"></div>
 
+<!-- 獨立部署（非 Claude.ai）時使用的後端 API 位址。
+     預設留空＝與網頁同一個網址（透過 server.js 一起服務時免設定）。
+     若改用 file:// 直接開啟 index.html，請取消下一行註解並改成後端網址，例如：
+     window.ECOCO_API_BASE = 'http://localhost:3001'; -->
+<script>window.ECOCO_API_BASE = window.ECOCO_API_BASE || '';</script>
+<script src="storage-shim.js"></script>
 <script>
 const STORAGE_KEY = 'ecoco-inventory-data-v7';
 const SESSION_KEY = 'ecoco-session-v7';
