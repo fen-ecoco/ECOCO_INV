@@ -337,14 +337,14 @@
 
     <div class="section-title"><span class="dot"></span>商品即時庫存</div>
     <div class="card">
-      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 搜尋商品名稱／目前庫存／安全庫存">
+      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 交叉篩選：商品名稱／目前庫存／安全庫存（可空格分隔多條件）">
       <div id="stockGrid" class="stock-grid"></div>
       <div id="pagerStockProducts"></div>
     </div>
 
     <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
     <div class="card">
-      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 搜尋包材名稱／剩餘量／安全庫存">
+      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 交叉篩選：包材名稱／剩餘量／安全庫存（可空格分隔多條件）">
       <div id="matStockGrid" class="stock-grid"></div>
       <div id="pagerStockMaterials"></div>
     </div>
@@ -454,10 +454,13 @@
         <button class="btn-outline" id="btnImportProductTrigger">⬆ 匯入商品 CSV</button>
         <button class="btn-outline subtle" id="btnTemplateProduct">📄 下載匯入範本</button>
         <input type="file" accept=".csv" id="importProductFile" style="display:none;">
+        <button class="btn-outline subtle" id="btnClearProductSuggest" style="margin-left:auto;">🗑 清除名稱／尺寸建議清單</button>
       </div>
       <div class="form-grid">
-        <div><label>商品名稱</label><input type="text" id="pName" placeholder="例如：回收酒瓶 600ml"></div>
-        <div><label>尺寸</label><input type="text" id="pSize" placeholder="選填，例如 600ml"></div>
+        <div><label>商品名稱</label><input type="text" id="pName" list="pNameList" placeholder="例如：回收酒瓶 600ml" autocomplete="off"></div>
+        <div><label>尺寸</label><input type="text" id="pSize" list="pSizeList" placeholder="選填，例如 600ml" autocomplete="off"></div>
+        <datalist id="pNameList"></datalist>
+        <datalist id="pSizeList"></datalist>
         <div><label>目前庫存量</label><input type="number" min="0" step="1" id="pStock" placeholder="0"></div>
         <div><label>安全庫存量</label><input type="number" min="0" step="1" id="pSafety" placeholder="低於此數量會警示"></div>
         <div><label>備註</label><input type="text" id="pRemark" placeholder="選填"></div>
@@ -492,10 +495,13 @@
         <button class="btn-outline" id="btnImportMaterialTrigger">⬆ 匯入包材 CSV</button>
         <button class="btn-outline subtle" id="btnTemplateMaterial">📄 下載匯入範本</button>
         <input type="file" accept=".csv" id="importMaterialFile" style="display:none;">
+        <button class="btn-outline subtle" id="btnClearMaterialSuggest" style="margin-left:auto;">🗑 清除名稱／規格建議清單</button>
       </div>
       <div class="form-grid">
-        <div><label>包材名稱</label><input type="text" id="mName" placeholder="例如：紙箱 A 號"></div>
-        <div><label>規格</label><input type="text" id="mSpec" placeholder="選填，例如 30x20x15cm"></div>
+        <div><label>包材名稱</label><input type="text" id="mName" list="mNameList" placeholder="例如：紙箱 A 號" autocomplete="off"></div>
+        <div><label>規格</label><input type="text" id="mSpec" list="mSpecList" placeholder="選填，例如 30x20x15cm" autocomplete="off"></div>
+        <datalist id="mNameList"></datalist>
+        <datalist id="mSpecList"></datalist>
         <div><label>單價／費用（元）</label><input type="number" min="0" step="0.01" id="mPrice" placeholder="0"></div>
         <div><label>目前剩餘量</label><input type="number" min="0" step="1" id="mStock" placeholder="0"></div>
         <div><label>安全庫存量</label><input type="number" min="0" step="1" id="mSafety" placeholder="低於此數量會警示"></div>
@@ -526,8 +532,8 @@ const STORAGE_KEY = 'ecoco-inventory-data-v7';
 const SESSION_KEY = 'ecoco-session-v7';
 const SHARED = true;
 const PAGE_SIZE_OPTIONS = [5,10,50,100,500,1000];
-const ALL_RANGE_START = '2026-01-01';
-const ALL_RANGE_END = '2099-12-31';
+const ALL_RANGE_START = '2020-01-01';
+const ALL_RANGE_END = '2029-12-31';
 
 const DEFAULT_USERS = [
   {account:'FLCHR0159', name:'Eva',  password:'FLCHR0159', isAdmin:false},
@@ -549,7 +555,8 @@ let state = {
   products: [],
   materials: [],
   shipments: [],
-  packagingRecords: []
+  packagingRecords: [],
+  autocomplete: { productNames:[], productSizes:[], materialNames:[], materialSpecs:[] }
 };
 
 let currentUser = null;
@@ -577,6 +584,18 @@ function stockValueHtml(value, safety){
     return `<span style="color:var(--danger);font-weight:900;">${fmtNum(value)}</span>`;
   }
   return fmtNum(value);
+}
+function productOptionLabel(p){ return p.name + (p.size ? '（'+p.size+'）' : ''); }
+function materialOptionLabel(m){ return m.name + (m.spec ? '（'+m.spec+'）' : ''); }
+function productDisplayLabel(productId, fallbackName){
+  const p = state.products.find(x=>x.id===productId);
+  const size = p ? p.size : '';
+  return (fallbackName||(p?p.name:'')) + (size ? '（'+size+'）' : '');
+}
+function materialDisplayLabel(materialId, fallbackName){
+  const m = state.materials.find(x=>x.id===materialId);
+  const spec = m ? m.spec : '';
+  return (fallbackName||(m?m.name:'')) + (spec ? '（'+spec+'）' : '');
 }
 function pad2(n){ return String(n).padStart(2,'0'); }
 
@@ -683,6 +702,17 @@ async function loadData(){
       if(r.amount===undefined) r.amount = (r.qty||0)*(r.price||0);
     }
   });
+
+  if(!state.autocomplete){
+    state.autocomplete = { productNames:[], productSizes:[], materialNames:[], materialSpecs:[] };
+    // 首次遷移：把既有商品/包材的名稱、尺寸、規格灌入建議清單，不遺失既有資料
+    state.products.forEach(p=>{ recordAutocomplete('productNames', p.name); recordAutocomplete('productSizes', p.size); });
+    state.materials.forEach(m=>{ recordAutocomplete('materialNames', m.name); recordAutocomplete('materialSpecs', m.spec); });
+  } else {
+    ['productNames','productSizes','materialNames','materialSpecs'].forEach(k=>{
+      if(!Array.isArray(state.autocomplete[k])) state.autocomplete[k] = [];
+    });
+  }
 
   await restoreSession();
   renderAll();
@@ -847,6 +877,9 @@ function updateRangeModeHint(){
   } else if(mode==='week' || mode==='month'){
     const {startStr,endStr} = computeRangeBounds(mode);
     el.textContent = startStr + '~' + endStr.slice(5);
+  } else if(mode==='all'){
+    const {startStr,endStr} = computeRangeBounds('all');
+    el.textContent = startStr + '~' + endStr;
   } else {
     el.textContent = '';
   }
@@ -957,7 +990,7 @@ function encodeGifts(gifts){
 function refreshMaterialPickers(){
   const pPicker = document.getElementById('pMatPicker');
   if(pPicker){
-    pPicker.innerHTML = state.materials.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('') || '<option value="">請先設定包材</option>';
+    pPicker.innerHTML = state.materials.map(m=>`<option value="${m.id}">${escapeHtml(materialOptionLabel(m))}</option>`).join('') || '<option value="">請先設定包材</option>';
   }
 }
 function renderPMatRowsList(){
@@ -996,6 +1029,8 @@ document.getElementById('btnAddProduct').addEventListener('click', async ()=>{
     createdAt: nowStr(), createdBy: currentUser.name,
     updatedAt: nowStr(), updatedBy: currentUser.name
   });
+  recordAutocomplete('productNames', name);
+  recordAutocomplete('productSizes', size);
   document.getElementById('pName').value='';
   document.getElementById('pSize').value='';
   document.getElementById('pStock').value='';
@@ -1012,7 +1047,7 @@ function materialUsagesLabel(p){
   if(!p.materialUsages || p.materialUsages.length===0) return '<span style="color:var(--muted);">未設定</span>';
   return p.materialUsages.map(u=>{
     const m = state.materials.find(x=>x.id===u.materialId);
-    return m ? `${escapeHtml(m.name)}×${u.perUnit}` : null;
+    return m ? `${escapeHtml(materialOptionLabel(m))}×${u.perUnit}` : null;
   }).filter(Boolean).join('、');
 }
 
@@ -1079,6 +1114,8 @@ function startEditProduct(id){
     p.stock = newStock;
     p.safety = newSafety;
     p.remark = document.getElementById('ePRemark').value.trim();
+    recordAutocomplete('productNames', p.name);
+    recordAutocomplete('productSizes', p.size);
     p.updatedAt = nowStr();
     p.updatedBy = currentUser.name;
     await saveData(); renderAll();
@@ -1107,7 +1144,7 @@ function openProductMaterialsModal(productId){
     }).join('');
   }
   function render(){
-    const matOptions = state.materials.filter(m=>!temp.some(u=>u.materialId===m.id)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+    const matOptions = state.materials.filter(m=>!temp.some(u=>u.materialId===m.id)).map(m=>`<option value="${m.id}">${escapeHtml(materialOptionLabel(m))}</option>`).join('');
     root.innerHTML = `
       <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
@@ -1190,6 +1227,8 @@ document.getElementById('importProductFile').addEventListener('change', function
       const remark = (c[5]||'').trim();
       if(isNaN(stock) || stock<0){ skipped++; continue; }
       const decodedUsages = matUsageStr ? decodeMaterialUsages(matUsageStr) : null;
+      recordAutocomplete('productNames', name);
+      recordAutocomplete('productSizes', size);
       let existing = state.products.find(p=>p.name===name);
       if(existing){
         existing.size = size || existing.size || '';
@@ -1231,6 +1270,8 @@ document.getElementById('btnAddMaterialDef').addEventListener('click', async ()=
     createdAt: nowStr(), createdBy: currentUser.name,
     updatedAt: nowStr(), updatedBy: currentUser.name
   });
+  recordAutocomplete('materialNames', name);
+  recordAutocomplete('materialSpecs', spec);
   document.getElementById('mName').value='';
   document.getElementById('mSpec').value='';
   document.getElementById('mPrice').value='';
@@ -1306,6 +1347,8 @@ function startEditMaterial(id){
     m.stock = newStock;
     m.safety = newSafety;
     m.remark = document.getElementById('eMRemark').value.trim();
+    recordAutocomplete('materialNames', m.name);
+    recordAutocomplete('materialSpecs', m.spec);
     m.updatedAt = nowStr();
     m.updatedBy = currentUser.name;
     await saveData(); renderAll();
@@ -1348,6 +1391,8 @@ document.getElementById('importMaterialFile').addEventListener('change', functio
       const safety = parseFloat(c[4]);
       const remark = (c[5]||'').trim();
       if((!isNaN(stock)&&stock<0)){ skipped++; continue; }
+      recordAutocomplete('materialNames', name);
+      recordAutocomplete('materialSpecs', spec);
       let existing = state.materials.find(m=>m.name===name);
       if(existing){
         existing.spec = spec || existing.spec || '';
@@ -1376,12 +1421,12 @@ document.getElementById('importMaterialFile').addEventListener('change', functio
 function refreshDropdowns(){
   const shipSel = document.getElementById('shipProduct');
   const prevShip = shipSel.value;
-  shipSel.innerHTML = state.products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') || '<option value="">請先設定商品</option>';
+  shipSel.innerHTML = state.products.map(p=>`<option value="${p.id}">${escapeHtml(productOptionLabel(p))}</option>`).join('') || '<option value="">請先設定商品</option>';
   if(prevShip) shipSel.value = prevShip;
 
   const matSel = document.getElementById('matSelect');
   const prevMat = matSel.value;
-  matSel.innerHTML = state.materials.map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('') || '<option value="">請先設定包材</option>';
+  matSel.innerHTML = state.materials.map(m=>`<option value="${m.id}">${escapeHtml(materialOptionLabel(m))}</option>`).join('') || '<option value="">請先設定包材</option>';
   if(prevMat) matSel.value = prevMat;
 
   refreshMaterialPickers();
@@ -1397,7 +1442,7 @@ function refreshDropdowns(){
 function refreshGiftPicker(){
   const sel = document.getElementById('giftProductPicker');
   if(!sel) return;
-  sel.innerHTML = state.products.map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('') || '<option value="">請先設定商品</option>';
+  sel.innerHTML = state.products.map(p=>`<option value="${p.id}">${escapeHtml(productOptionLabel(p))}</option>`).join('') || '<option value="">請先設定商品</option>';
 }
 function renderGiftRowsList(){
   const el = document.getElementById('giftRowsList');
@@ -1532,7 +1577,7 @@ function openShipMaterialModal(product, shippedQty, gifts, date){
   const rowsHtml = rows.map((r,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F1EFE8;">
       <input type="checkbox" id="modalRowChk${i}" checked style="width:auto;">
-      <label for="modalRowChk${i}" style="flex:1;margin:0;font-weight:700;color:var(--text);">${escapeHtml(r.materialName)}</label>
+      <label for="modalRowChk${i}" style="flex:1;margin:0;font-weight:700;color:var(--text);">${escapeHtml(materialDisplayLabel(r.materialId, r.materialName))}</label>
       <input type="number" min="0" step="1" id="modalRowQty${i}" value="${r.qty}" style="width:90px;">
     </div>`).join('');
   root.innerHTML = `
@@ -1578,7 +1623,7 @@ function openBulkMaterialModal(suggestionMap, date){
   const rowsHtml = rows.map((r,i)=>`
     <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #F1EFE8;">
       <input type="checkbox" id="bulkRowChk${i}" checked style="width:auto;">
-      <label for="bulkRowChk${i}" style="flex:1;margin:0;font-weight:700;">${escapeHtml(r.materialName)}</label>
+      <label for="bulkRowChk${i}" style="flex:1;margin:0;font-weight:700;">${escapeHtml(materialDisplayLabel(r.materialId, r.materialName))}</label>
       <input type="number" min="0" step="1" id="bulkRowQty${i}" value="${r.qty}" style="width:90px;">
     </div>`).join('');
   root.innerHTML = `
@@ -1705,7 +1750,7 @@ function startEditShipment(id, tableId){
   if(!r) return;
   const row = document.querySelector(`#${tableId} tr[data-rid="${id}"]`);
   if(!row) return;
-  const productOptions = state.products.map(p=>`<option value="${p.id}" ${p.id===r.productId?'selected':''}>${escapeHtml(p.name)}</option>`).join('');
+  const productOptions = state.products.map(p=>`<option value="${p.id}" ${p.id===r.productId?'selected':''}>${escapeHtml(productOptionLabel(p))}</option>`).join('');
   row.innerHTML = `
     <td class="edit-cell"><input type="date" value="${r.date}" id="eShipDate"></td>
     <td class="edit-cell"><select id="eShipProduct">${productOptions}</select></td>
@@ -1785,11 +1830,11 @@ function openEditShipmentGiftsModal(id){
     </div>`).join('');
   }
   function render(){
-    const options = state.products.filter(p=>!temp.some(g=>g.productId===p.id)).map(p=>`<option value="${p.id}">${escapeHtml(p.name)}</option>`).join('');
+    const options = state.products.filter(p=>!temp.some(g=>g.productId===p.id)).map(p=>`<option value="${p.id}">${escapeHtml(productOptionLabel(p))}</option>`).join('');
     root.innerHTML = `
       <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
-          <h3>🎁「${escapeHtml(r.productName)}」出貨紀錄的贈品明細</h3>
+          <h3>🎁「${escapeHtml(productDisplayLabel(r.productId, r.productName))}」出貨紀錄的贈品明細</h3>
           <p>調整此筆出貨紀錄隨附的贈品品項與數量，儲存後會自動連動調整庫存（並防止負庫存）。</p>
           <div id="giftEditRows">${rowsHtml()}</div>
           <div class="mat-picker-row" style="margin-top:6px;">
@@ -1858,7 +1903,7 @@ function startEditMaterialRecord(id, tableId){
   if(r.items && r.items.length){ openEditMultiPackagingModal(id); return; }
   const row = document.querySelector(`#${tableId} tr[data-rid="${id}"]`);
   if(!row) return;
-  const matOptions = state.materials.map(m=>`<option value="${m.id}" ${m.id===r.materialId?'selected':''}>${escapeHtml(m.name)}</option>`).join('');
+  const matOptions = state.materials.map(m=>`<option value="${m.id}" ${m.id===r.materialId?'selected':''}>${escapeHtml(materialOptionLabel(m))}</option>`).join('');
   row.innerHTML = `
     <td class="edit-cell"><input type="date" value="${r.date}" id="eMatDate"></td>
     <td class="edit-cell" style="display:flex;gap:6px;">
@@ -1930,14 +1975,14 @@ function openEditMultiPackagingModal(id){
     return temp.map((it,idx)=>{
       const mat = state.materials.find(m=>m.id===it.materialId);
       return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="flex:1;font-size:13px;font-weight:700;">${escapeHtml(mat?mat.name:it.materialName)}</span>
+        <span style="flex:1;font-size:13px;font-weight:700;">${escapeHtml(mat?materialOptionLabel(mat):it.materialName)}</span>
         <input type="number" min="1" step="1" value="${it.qty}" data-idx="${idx}" class="mpEditQty" style="width:90px;">
         <button type="button" data-idx="${idx}" class="mpEditRemove" style="background:none;border:none;color:var(--danger);cursor:pointer;font-weight:900;font-size:14px;">✕</button>
       </div>`;
     }).join('');
   }
   function render(){
-    const options = state.materials.filter(m=>!temp.some(it=>it.materialId===m.id)).map(m=>`<option value="${m.id}">${escapeHtml(m.name)}</option>`).join('');
+    const options = state.materials.filter(m=>!temp.some(it=>it.materialId===m.id)).map(m=>`<option value="${m.id}">${escapeHtml(materialOptionLabel(m))}</option>`).join('');
     root.innerHTML = `
       <div class="modal-overlay" id="modalOverlay">
         <div class="modal-box">
@@ -2170,7 +2215,7 @@ function fillShipmentTable(tableId, pagerId, fullList, editable, pagerKey){
   slice.forEach(r=>{
     const tr = document.createElement('tr');
     tr.setAttribute('data-rid', r.id);
-    tr.innerHTML = `<td>${r.date}</td><td>${escapeHtml(r.productName)}</td>
+    tr.innerHTML = `<td>${r.date}</td><td>${escapeHtml(productDisplayLabel(r.productId, r.productName))}</td>
       <td><span class="tag ${r.shipType}">${r.shipType==='ship'?'出貨':'退貨'}</span></td>
       <td>${fmtNum(r.qty)}</td>
       <td class="gift-text">${giftsLabel(r.gifts)}</td>
@@ -2218,7 +2263,7 @@ function fillMaterialTable(tableId, pagerId, fullList, editable, pagerKey){
     const tr = document.createElement('tr');
     tr.setAttribute('data-rid', r.id);
     const isMulti = r.items && r.items.length;
-    const itemsLabel = isMulti ? r.items.map(it=>`${escapeHtml(it.materialName)}×${fmtNum(it.qty)}`).join('、') : escapeHtml(r.materialName)+'×'+fmtNum(r.qty);
+    const itemsLabel = isMulti ? r.items.map(it=>`${escapeHtml(materialDisplayLabel(it.materialId, it.materialName))}×${fmtNum(it.qty)}`).join('、') : escapeHtml(materialDisplayLabel(r.materialId, r.materialName))+'×'+fmtNum(r.qty);
     const amount = isMulti ? r.totalAmount : r.amount;
     tr.innerHTML = `<td>${r.date}</td>
       <td class="items-text">${itemsLabel}</td>
@@ -2327,9 +2372,13 @@ function stockCardHtml(item, unitLabel){
 
 function itemMatchesStockSearch(item, query){
   if(!query) return true;
-  return (item.name||'').toLowerCase().includes(query)
-    || String(item.stock ?? '').includes(query)
-    || String(item.safety ?? '').includes(query);
+  const terms = query.split(/[\s,，、]+/).filter(Boolean);
+  if(terms.length===0) return true;
+  return terms.every(term=>
+    (item.name||'').toLowerCase().includes(term)
+    || String(item.stock ?? '').includes(term)
+    || String(item.safety ?? '').includes(term)
+  );
 }
 
 function renderStockGrid(){
@@ -2377,11 +2426,46 @@ document.getElementById('stockMaterialSearch').addEventListener('input', ()=>{
   renderStockGrid();
 });
 
+function recordAutocomplete(listKey, value){
+  if(!value || !value.trim()) return;
+  const v = value.trim();
+  if(!state.autocomplete) state.autocomplete = { productNames:[], productSizes:[], materialNames:[], materialSpecs:[] };
+  if(!Array.isArray(state.autocomplete[listKey])) state.autocomplete[listKey] = [];
+  if(!state.autocomplete[listKey].includes(v)) state.autocomplete[listKey].push(v);
+}
+function refreshAutocompleteLists(){
+  const setOptions = (id, values) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = (values||[]).map(v=>`<option value="${escapeHtml(v)}"></option>`).join('');
+  };
+  const ac = state.autocomplete || {};
+  setOptions('pNameList', ac.productNames);
+  setOptions('pSizeList', ac.productSizes);
+  setOptions('mNameList', ac.materialNames);
+  setOptions('mSpecList', ac.materialSpecs);
+}
+async function clearSuggestionList(keys, label){
+  if(!requireLogin('清除建議清單')) return;
+  if(!confirm(`確定要清除「${label}」的自動完成建議清單嗎？（不會刪除任何商品／包材資料，只會清空打字時的建議選項）`)) return;
+  keys.forEach(k=>{ state.autocomplete[k] = []; });
+  await saveData();
+  refreshAutocompleteLists();
+  showToast(`已清除「${label}」建議清單`);
+}
+document.getElementById('btnClearProductSuggest').addEventListener('click', ()=>{
+  clearSuggestionList(['productNames','productSizes'], '商品名稱／尺寸');
+});
+document.getElementById('btnClearMaterialSuggest').addEventListener('click', ()=>{
+  clearSuggestionList(['materialNames','materialSpecs'], '包材名稱／規格');
+});
+
 function renderAll(){
   renderAuth();
   renderProductTable();
   renderMaterialDefTable();
   refreshDropdowns();
+  refreshAutocompleteLists();
   renderRecordTables();
   renderSummary();
   renderStockGrid();
