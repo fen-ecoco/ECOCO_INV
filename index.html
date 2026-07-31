@@ -196,6 +196,13 @@
     margin-top:8px;font-size:11px;color:var(--muted);font-weight:500;
   }
   .mat-picker-row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;}
+  .select-with-copy{display:flex;gap:6px;align-items:stretch;}
+  .select-with-copy select{flex:1;min-width:0;}
+  .copy-select-btn{
+    flex-shrink:0;border:1.5px solid var(--lightblue);background:#fff;color:var(--darkblue);
+    border-radius:10px;padding:0 12px;font-size:15px;cursor:pointer;
+  }
+  .copy-select-btn:hover{background:var(--beige);}
   .mat-picker-row select{flex:2;min-width:140px;}
   .mat-picker-row input{flex:1;min-width:90px;}
   .mat-chip-list{display:flex;flex-wrap:wrap;gap:8px;}
@@ -301,6 +308,7 @@
     <button class="tab-btn" data-tab="entry">📝 每日填寫</button>
     <button class="tab-btn" data-tab="products">📦 商品設定</button>
     <button class="tab-btn" data-tab="materials">🧾 包材設定</button>
+    <button class="tab-btn" data-tab="accounts" id="tabBtnAccounts">🔑 帳號管理</button>
   </div>
 
   <!-- ============ DASHBOARD ============ -->
@@ -354,7 +362,7 @@
         <div class="section-title"><span class="dot"></span>出貨紀錄（依篩選區間）</div>
         <div class="card">
           <div class="table-wrap"><table id="shipmentTableDash"><thead>
-            <tr><th>日期</th><th>商品</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th></tr>
+            <tr><th>日期</th><th>商品名稱</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th></tr>
           </thead><tbody></tbody></table></div>
           <div id="pagerShipDash"></div>
         </div>
@@ -363,7 +371,7 @@
         <div class="section-title mat"><span class="dot"></span>包材紀錄（依篩選區間）</div>
         <div class="card">
           <div class="table-wrap"><table id="materialTableDash"><thead>
-            <tr><th>日期</th><th>包材明細</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th></tr>
+            <tr><th>日期</th><th>包材名稱</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th></tr>
           </thead><tbody></tbody></table></div>
           <div id="pagerMatDash"></div>
         </div>
@@ -383,7 +391,12 @@
       </div>
       <div class="form-grid">
         <div><label>日期</label><input type="date" id="shipDate"></div>
-        <div><label>商品</label><select id="shipProduct"></select></div>
+        <div><label>商品</label>
+          <div class="select-with-copy">
+            <select id="shipProduct"></select>
+            <button type="button" class="copy-select-btn" id="btnCopyShipProduct" title="複製目前選擇的商品名稱">📋</button>
+          </div>
+        </div>
         <div><label>類型</label>
           <select id="shipType">
             <option value="ship">出貨（扣減庫存）</option>
@@ -398,6 +411,7 @@
         <label>贈品品項（選填，會與本次出貨合併為同一筆紀錄，並一併扣除庫存；贈品本身也是商品，可加入多筆）</label>
         <div class="mat-picker-row">
           <select id="giftProductPicker"></select>
+          <button type="button" class="copy-select-btn" id="btnCopyGiftProduct" title="複製目前選擇的商品名稱">📋</button>
           <input type="number" min="1" step="1" id="giftProductQty" placeholder="贈送數量（整數）">
           <button type="button" class="btn-outline" id="btnAddGiftRow">＋加入贈品</button>
         </div>
@@ -409,7 +423,7 @@
       <div class="hint-line">💡 出貨（含贈品）送出後，系統會依商品與贈品的預設包材設定，彈出視窗讓你確認／調整後，把所有需要的包材<b>合併成一筆</b>包材使用紀錄；退貨不影響庫存也不支援贈品。匯入 CSV 為批次作業，不會逐筆彈出視窗，完成後會統一彙總彈出一次。</div>
 
       <div class="table-wrap" style="margin-top:16px;"><table id="shipmentTableFull"><thead>
-        <tr><th>日期</th><th>商品</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th><th></th></tr>
+        <tr><th>日期</th><th>商品名稱</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerShipFull"></div>
     </div>
@@ -424,7 +438,12 @@
       </div>
       <div class="form-grid">
         <div><label>日期</label><input type="date" id="matDate"></div>
-        <div><label>包材</label><select id="matSelect"></select></div>
+        <div><label>包材</label>
+          <div class="select-with-copy">
+            <select id="matSelect"></select>
+            <button type="button" class="copy-select-btn" id="btnCopyMatSelect" title="複製目前選擇的包材名稱">📋</button>
+          </div>
+        </div>
         <div><label>類型</label>
           <select id="matType">
             <option value="in">入庫（增加庫存）</option>
@@ -439,7 +458,7 @@
       <div class="hint-line">💡 此區塊為單一包材的手動紀錄；出貨自動建立的多項包材，會合併成一筆顯示在下表中。</div>
 
       <div class="table-wrap" style="margin-top:16px;"><table id="materialTableFull"><thead>
-        <tr><th>日期</th><th>包材明細</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th><th></th></tr>
+        <tr><th>日期</th><th>包材名稱</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerMatFull"></div>
     </div>
@@ -515,6 +534,23 @@
     </div>
   </div>
 
+  <!-- ============ ACCOUNTS ============ -->
+  <div class="view" id="view-accounts">
+    <div class="section-title"><span class="dot"></span>帳號管理（僅管理者可新增／刪除）</div>
+    <div class="card">
+      <div class="form-grid">
+        <div><label>姓名</label><input type="text" id="aName" placeholder="例如：小明"></div>
+        <div><label>工號（帳號）</label><input type="text" id="aAccount" placeholder="例如：FLCHR0099"></div>
+        <div><button class="btn" id="btnAddAccount">＋ 新增帳號</button></div>
+      </div>
+      <div class="hint-line">💡 新帳號一律為「一般使用者」權限，密碼預設與工號相同，該同事登入後可自行透過右上角「忘記密碼」重設自己的密碼。</div>
+      <div class="table-wrap" style="margin-top:16px;"><table id="accountTable"><thead>
+        <tr><th>姓名</th><th>工號（帳號）</th><th>權限</th><th>建立資訊</th><th></th></tr>
+      </thead><tbody></tbody></table></div>
+      <div id="pagerAccount"></div>
+    </div>
+  </div>
+
   <div class="footer-tip">資料設定好之後，之後每天只要到「每日填寫」輸入數量，儀表板就會自動更新最新狀態。</div>
 </div>
 
@@ -574,6 +610,7 @@ let pagers = {
   matDash:{page:1,size:5},
   stockProducts:{page:1,size:5},
   stockMaterials:{page:1,size:5},
+  accounts:{page:1,size:5},
 };
 
 function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
@@ -612,6 +649,35 @@ function escapeHtml(str){
 }
 function whoWhenHtml(name, ts){
   return `<div class="who-when"><b>${escapeHtml(name||'—')}</b><br>${ts||'—'}</div>`;
+}
+
+async function copyTextToClipboard(text){
+  if(!text) return false;
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  }catch(e){ /* fall through to legacy method */ }
+  try{
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    const ok = document.execCommand('copy');
+    document.body.removeChild(ta);
+    return ok;
+  }catch(e){ return false; }
+}
+function copySelectedOptionText(selectId){
+  const sel = document.getElementById(selectId);
+  if(!sel || sel.selectedIndex<0){ showToast('請先選擇一個項目', true); return; }
+  const text = sel.options[sel.selectedIndex].text;
+  copyTextToClipboard(text).then(ok=>{
+    showToast(ok ? '已複製：'+text : '複製失敗，請手動選取文字複製', !ok);
+  });
 }
 
 function showToast(msg, isWarn){
@@ -746,8 +812,22 @@ async function clearSession(){
   try{ await window.storage.delete(SESSION_KEY, false); }catch(e){}
 }
 
+function updateAccountsTabVisibility(){
+  const tabBtn = document.getElementById('tabBtnAccounts');
+  if(!tabBtn) return;
+  const allowed = !!(currentUser && currentUser.isAdmin);
+  tabBtn.style.display = allowed ? '' : 'none';
+  if(!allowed && tabBtn.classList.contains('active')){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.querySelector('.tab-btn[data-tab="dashboard"]').classList.add('active');
+    document.getElementById('view-dashboard').classList.add('active');
+  }
+}
+
 function renderAuth(){
   const el = document.getElementById('authArea');
+  updateAccountsTabVisibility();
   if(currentUser){
     el.innerHTML = `
       <div class="user-chip">
@@ -970,6 +1050,46 @@ function encodeMaterialUsages(usages){
     return m ? `${m.name}:${u.perUnit}` : null;
   }).filter(Boolean).join(';');
 }
+function stripTrailingParen(s){
+  return (s||'').replace(/[（(][^）(]*[）)]\s*$/,'').trim();
+}
+/* 彈性比對商品：先比對純名稱，找不到再嘗試去掉結尾的（尺寸），
+   最後再嘗試比對「名稱＋尺寸」組合文字（例如用 📋 複製按鈕複製出來的完整文字）。
+   這樣不管貼進 CSV 的是純名稱還是含尺寸的組合文字，都能正確找到對應商品。 */
+function findProductByFlexibleName(raw){
+  const name = (raw||'').trim();
+  if(!name) return null;
+  let p = state.products.find(x=>x.name===name);
+  if(p) return p;
+  const stripped = stripTrailingParen(name);
+  if(stripped && stripped!==name){
+    p = state.products.find(x=>x.name===stripped);
+    if(p) return p;
+  }
+  return state.products.find(x=>productOptionLabel(x)===name) || null;
+}
+function findMaterialByFlexibleName(raw){
+  const name = (raw||'').trim();
+  if(!name) return null;
+  let m = state.materials.find(x=>x.name===name);
+  if(m) return m;
+  const stripped = stripTrailingParen(name);
+  if(stripped && stripped!==name){
+    m = state.materials.find(x=>x.name===stripped);
+    if(m) return m;
+  }
+  return state.materials.find(x=>materialOptionLabel(x)===name) || null;
+}
+/* 從「包材明細」格式的字串中取出純名稱，例如「紙箱A（30x20cm）×2、氣泡布×1」
+   若整段被貼進單一包材欄位，取第一項並去除數量與規格後綴 */
+function extractPlainMaterialName(raw){
+  let s = (raw||'').trim();
+  s = s.split('、')[0];
+  s = s.split('×')[0];
+  s = stripTrailingParen(s);
+  return s.trim();
+}
+
 function decodeMaterialUsages(str){
   if(!str || !str.trim()) return [];
   return str.split(';').map(s=>s.trim()).filter(Boolean).map(pair=>{
@@ -977,13 +1097,47 @@ function decodeMaterialUsages(str){
     if(idx===-1) return null;
     const name = pair.slice(0,idx).trim();
     const qty = parseInt(pair.slice(idx+1));
-    const mat = state.materials.find(m=>m.name===name);
+    const mat = findMaterialByFlexibleName(name);
     if(!mat || isNaN(qty) || qty<=0) return null;
     return {materialId:mat.id, perUnit:qty};
   }).filter(Boolean);
 }
 function encodeGifts(gifts){
   return (gifts||[]).map(g=>`${g.productName}:${g.qty}`).join(';');
+}
+function decodeGifts(str){
+  if(!str || !str.trim()) return [];
+  return str.split(';').map(s=>s.trim()).filter(Boolean).map(pair=>{
+    const idx = pair.lastIndexOf(':');
+    if(idx===-1) return null;
+    const name = pair.slice(0,idx).trim();
+    const qty = parseInt(pair.slice(idx+1));
+    const prod = findProductByFlexibleName(name);
+    if(!prod || isNaN(qty) || qty<=0) return null;
+    return {productId:prod.id, productName:prod.name, qty};
+  }).filter(Boolean);
+}
+/* 依標題文字自動找出每個欄位在 CSV 裡的實際欄位索引，
+   不管使用者用的是「匯出檔」「匯入範本」或自行調整過欄位順序，都能正確對應。
+   fieldDefs 範例：[{key:'name', match:['商品名稱','名稱']}, ...] */
+function resolveCsvColumns(headerRow, fieldDefs){
+  const idx = {};
+  fieldDefs.forEach(f=>{
+    let found = -1;
+    for(let i=0;i<headerRow.length;i++){
+      const h = (headerRow[i]||'').trim();
+      if(f.match.some(m=>h.indexOf(m)===0 || h.indexOf(m)>=0)){ found = i; break; }
+    }
+    idx[f.key] = found;
+  });
+  return idx;
+}
+function summarizeSkipReasons(reasons){
+  if(reasons.length===0) return '';
+  const shown = reasons.slice(0,8);
+  let msg = shown.join('\n');
+  if(reasons.length>8) msg += `\n...等共 ${reasons.length} 筆略過`;
+  return msg;
 }
 
 /* ---------- Products: multi-material picker (add form) ---------- */
@@ -1215,17 +1369,30 @@ document.getElementById('importProductFile').addEventListener('change', function
   reader.onload = async ev=>{
     const rows = parseCSV(ev.target.result);
     if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    const idx = resolveCsvColumns(rows[0], [
+      {key:'name', match:['商品名稱','名稱']},
+      {key:'size', match:['尺寸']},
+      {key:'stock', match:['目前庫存','庫存']},
+      {key:'safety', match:['安全庫存']},
+      {key:'matUsage', match:['出貨預設包材','包材']},
+      {key:'remark', match:['備註']},
+    ]);
+    if(idx.name===-1 || idx.stock===-1){
+      alertWarn('CSV 標題列找不到「商品名稱」或「目前庫存」欄位，請確認格式是否正確（建議先下載匯入範本比對）');
+      e.target.value=''; return;
+    }
     let added=0, updated=0, skipped=0;
+    const reasons = [];
     for(let i=1;i<rows.length;i++){
       const c = rows[i];
-      const name = (c[0]||'').trim();
-      if(!name){ skipped++; continue; }
-      const size = (c[1]||'').trim();
-      const stock = parseFloat(c[2]);
-      const safety = parseFloat(c[3]);
-      const matUsageStr = (c[4]||'').trim();
-      const remark = (c[5]||'').trim();
-      if(isNaN(stock) || stock<0){ skipped++; continue; }
+      const name = (c[idx.name]||'').trim();
+      if(!name){ skipped++; reasons.push(`第 ${i+1} 列：商品名稱空白，已略過`); continue; }
+      const size = idx.size>=0 ? (c[idx.size]||'').trim() : '';
+      const stock = parseFloat(c[idx.stock]);
+      const safety = idx.safety>=0 ? parseFloat(c[idx.safety]) : NaN;
+      const matUsageStr = idx.matUsage>=0 ? (c[idx.matUsage]||'').trim() : '';
+      const remark = idx.remark>=0 ? (c[idx.remark]||'').trim() : '';
+      if(isNaN(stock) || stock<0){ skipped++; reasons.push(`第 ${i+1} 列「${name}」：庫存數值無效（${c[idx.stock]}），已略過`); continue; }
       const decodedUsages = matUsageStr ? decodeMaterialUsages(matUsageStr) : null;
       recordAutocomplete('productNames', name);
       recordAutocomplete('productSizes', size);
@@ -1249,6 +1416,7 @@ document.getElementById('importProductFile').addEventListener('change', function
     }
     await saveData(); renderAll();
     showToast(`商品匯入完成：新增 ${added}、更新 ${updated}、略過 ${skipped}`);
+    if(reasons.length>0) alert('略過明細：\n'+summarizeSkipReasons(reasons));
     e.target.value='';
   };
   reader.readAsText(file, 'UTF-8');
@@ -1380,17 +1548,30 @@ document.getElementById('importMaterialFile').addEventListener('change', functio
   reader.onload = async ev=>{
     const rows = parseCSV(ev.target.result);
     if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    const idx = resolveCsvColumns(rows[0], [
+      {key:'name', match:['包材名稱','名稱']},
+      {key:'spec', match:['規格']},
+      {key:'price', match:['單價']},
+      {key:'stock', match:['剩餘量','庫存']},
+      {key:'safety', match:['安全庫存']},
+      {key:'remark', match:['備註']},
+    ]);
+    if(idx.name===-1){
+      alertWarn('CSV 標題列找不到「包材名稱」欄位，請確認格式是否正確（建議先下載匯入範本比對）');
+      e.target.value=''; return;
+    }
     let added=0, updated=0, skipped=0;
+    const reasons = [];
     for(let i=1;i<rows.length;i++){
       const c = rows[i];
-      const name = (c[0]||'').trim();
-      if(!name){ skipped++; continue; }
-      const spec = (c[1]||'').trim();
-      const price = parseFloat(c[2]);
-      const stock = parseFloat(c[3]);
-      const safety = parseFloat(c[4]);
-      const remark = (c[5]||'').trim();
-      if((!isNaN(stock)&&stock<0)){ skipped++; continue; }
+      const name = (c[idx.name]||'').trim();
+      if(!name){ skipped++; reasons.push(`第 ${i+1} 列：包材名稱空白，已略過`); continue; }
+      const spec = idx.spec>=0 ? (c[idx.spec]||'').trim() : '';
+      const price = idx.price>=0 ? parseFloat(c[idx.price]) : NaN;
+      const stock = idx.stock>=0 ? parseFloat(c[idx.stock]) : NaN;
+      const safety = idx.safety>=0 ? parseFloat(c[idx.safety]) : NaN;
+      const remark = idx.remark>=0 ? (c[idx.remark]||'').trim() : '';
+      if((!isNaN(stock)&&stock<0)){ skipped++; reasons.push(`第 ${i+1} 列「${name}」：剩餘量不能為負數，已略過`); continue; }
       recordAutocomplete('materialNames', name);
       recordAutocomplete('materialSpecs', spec);
       let existing = state.materials.find(m=>m.name===name);
@@ -1412,6 +1593,7 @@ document.getElementById('importMaterialFile').addEventListener('change', functio
     }
     await saveData(); renderAll();
     showToast(`包材匯入完成：新增 ${added}、更新 ${updated}、略過 ${skipped}`);
+    if(reasons.length>0) alert('略過明細：\n'+summarizeSkipReasons(reasons));
     e.target.value='';
   };
   reader.readAsText(file, 'UTF-8');
@@ -1500,6 +1682,9 @@ document.getElementById('shipQty').addEventListener('input', updateShipPreview);
 document.getElementById('matSelect').addEventListener('change', updateMatPreview);
 document.getElementById('matType').addEventListener('change', updateMatPreview);
 document.getElementById('matQty').addEventListener('input', updateMatPreview);
+document.getElementById('btnCopyShipProduct').addEventListener('click', ()=>copySelectedOptionText('shipProduct'));
+document.getElementById('btnCopyGiftProduct').addEventListener('click', ()=>copySelectedOptionText('giftProductPicker'));
+document.getElementById('btnCopyMatSelect').addEventListener('click', ()=>copySelectedOptionText('matSelect'));
 
 /* ---------- Core packaging-record creators ---------- */
 async function addPackagingRecord({date, materialId, type, qty, remark}){
@@ -2079,8 +2264,9 @@ document.getElementById('btnExportShip').addEventListener('click', ()=>{
   showToast('已匯出出貨紀錄 CSV');
 });
 document.getElementById('btnTemplateShip').addEventListener('click', ()=>{
-  const headers = ['日期','商品名稱','類型(出貨/退貨)','數量','備註'];
-  const rows = [[todayStr(),'回收酒瓶600ml','出貨','10','範例資料，請刪除後依實際資料建立']];
+  const headers = ['日期','商品名稱','類型(出貨/退貨)','數量','贈品明細(格式:名稱:數量;名稱:數量，選填)','備註'];
+  const sampleName = state.products[0] ? state.products[0].name : '回收酒瓶';
+  const rows = [[todayStr(), sampleName, '出貨', '10', '', '範例資料，請刪除後依實際資料建立（商品名稱需與「商品設定」裡的名稱完全一致）']];
   downloadCSV('ecoco_出貨紀錄匯入範本.csv', buildCSV(headers, rows));
   showToast('已下載出貨紀錄匯入範本');
 });
@@ -2094,21 +2280,52 @@ document.getElementById('importShipFile').addEventListener('change', function(e)
   reader.onload = async ev=>{
     const rows = parseCSV(ev.target.result);
     if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    const idx = resolveCsvColumns(rows[0], [
+      {key:'date', match:['日期']},
+      {key:'productName', match:['商品名稱']},
+      {key:'type', match:['類型']},
+      {key:'qty', match:['數量']},
+      {key:'gifts', match:['贈品明細','贈品']},
+      {key:'remark', match:['備註']},
+    ]);
+    if(idx.productName===-1 || idx.qty===-1){
+      alertWarn('CSV 標題列找不到「商品名稱」或「數量」欄位，請確認格式是否正確（建議先下載匯入範本比對，第一列一定要是標題列）');
+      e.target.value=''; return;
+    }
     let added=0, skipped=0;
+    const reasons = [];
     const suggestionMap = {};
     for(let i=1;i<rows.length;i++){
       const c = rows[i];
-      const date = (c[0]||'').trim() || todayStr();
-      const productName = (c[1]||'').trim();
-      const typeText = (c[2]||'').trim();
-      const qty = parseFloat(c[3]);
-      const remark = (c[4]||'').trim();
-      const p = state.products.find(x=>x.name===productName);
-      if(!p || isNaN(qty) || qty<=0){ skipped++; continue; }
+      const date = (idx.date>=0 ? (c[idx.date]||'').trim() : '') || todayStr();
+      const productName = (c[idx.productName]||'').trim();
+      const typeText = idx.type>=0 ? (c[idx.type]||'').trim() : '';
+      const qty = parseFloat(c[idx.qty]);
+      const remark = idx.remark>=0 ? (c[idx.remark]||'').trim() : '';
+      const giftsStr = idx.gifts>=0 ? (c[idx.gifts]||'').trim() : '';
+
+      if(!productName){ skipped++; reasons.push(`第 ${i+1} 列：商品名稱空白，已略過`); continue; }
+      const p = findProductByFlexibleName(productName);
+      if(!p){ skipped++; reasons.push(`第 ${i+1} 列：找不到商品「${productName}」（請確認名稱與「商品設定」裡的完全一致，含全形/半形字元與空白），已略過`); continue; }
+      if(isNaN(qty) || qty<=0){ skipped++; reasons.push(`第 ${i+1} 列「${productName}」：數量無效（${c[idx.qty]}），已略過`); continue; }
+
       const shipType = typeText==='退貨' ? 'return' : 'ship';
-      if(shipType==='ship' && p.stock - qty < 0){ skipped++; continue; }
+      const gifts = giftsStr ? decodeGifts(giftsStr) : [];
+
+      if(shipType==='ship'){
+        const deductions = {};
+        deductions[p.id] = (deductions[p.id]||0) + qty;
+        gifts.forEach(g=>{ deductions[g.productId] = (deductions[g.productId]||0) + g.qty; });
+        let insufficient = null;
+        for(const pid in deductions){
+          const prod = state.products.find(x=>x.id===pid);
+          if(prod && prod.stock - deductions[pid] < 0){ insufficient = prod.name; break; }
+        }
+        if(insufficient){ skipped++; reasons.push(`第 ${i+1} 列「${productName}」：「${insufficient}」庫存不足，已略過`); continue; }
+      }
+
       state.shipments.unshift({
-        id:uid(), date, productId:p.id, productName:p.name, shipType, qty, remark, gifts:[],
+        id:uid(), date, productId:p.id, productName:p.name, shipType, qty, remark, gifts,
         timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
       });
       if(shipType==='ship'){
@@ -2119,11 +2336,24 @@ document.getElementById('importShipFile').addEventListener('change', function(e)
             suggestionMap[u.materialId] = (suggestionMap[u.materialId]||0) + addQty;
           });
         }
+        gifts.forEach(g=>{
+          const gp = state.products.find(x=>x.id===g.productId);
+          if(gp){
+            gp.stock -= g.qty; gp.updatedAt=nowStr(); gp.updatedBy=currentUser.name;
+            if(gp.materialUsages && gp.materialUsages.length){
+              gp.materialUsages.forEach(u=>{
+                const addQty = Math.round(g.qty*u.perUnit);
+                suggestionMap[u.materialId] = (suggestionMap[u.materialId]||0) + addQty;
+              });
+            }
+          }
+        });
       }
       added++;
     }
     await saveData(); renderAll();
-    showToast(`出貨紀錄匯入完成：新增 ${added} 筆、略過 ${skipped} 筆（商品不存在或庫存不足）`);
+    showToast(`出貨紀錄匯入完成：新增 ${added} 筆、略過 ${skipped} 筆`);
+    if(reasons.length>0) alert('略過明細：\n'+summarizeSkipReasons(reasons));
     e.target.value='';
     if(Object.keys(suggestionMap).length>0){
       openBulkMaterialModal(suggestionMap, todayStr());
@@ -2133,7 +2363,7 @@ document.getElementById('importShipFile').addEventListener('change', function(e)
 });
 
 document.getElementById('btnExportMat').addEventListener('click', ()=>{
-  const headers = ['日期','包材明細','類型','金額','備註','填寫人','時間戳'];
+  const headers = ['日期','包材名稱','類型','金額','備註','填寫人','時間戳'];
   const rows = state.packagingRecords.map(r=>{
     if(r.items && r.items.length){
       const label = r.items.map(it=>`${it.materialName}×${it.qty}`).join('；');
@@ -2160,19 +2390,36 @@ document.getElementById('importMatFile').addEventListener('change', function(e){
   reader.onload = async ev=>{
     const rows = parseCSV(ev.target.result);
     if(rows.length<2){ showToast('CSV 沒有資料列', true); e.target.value=''; return; }
+    const idx = resolveCsvColumns(rows[0], [
+      {key:'date', match:['日期']},
+      {key:'materialName', match:['包材名稱','包材明細','名稱']},
+      {key:'type', match:['類型']},
+      {key:'qty', match:['數量']},
+      {key:'remark', match:['備註']},
+    ]);
+    if(idx.materialName===-1 || idx.qty===-1){
+      alertWarn('CSV 標題列找不到「包材名稱」或「數量」欄位，請確認格式是否正確（建議先下載匯入範本比對，第一列一定要是標題列）');
+      e.target.value=''; return;
+    }
     let added=0, skipped=0;
+    const reasons = [];
     for(let i=1;i<rows.length;i++){
       const c = rows[i];
-      const date = (c[0]||'').trim() || todayStr();
-      const materialName = (c[1]||'').trim();
-      const typeText = (c[2]||'').trim();
-      const qty = parseFloat(c[3]);
-      const remark = (c[5]||'').trim();
-      const m = state.materials.find(x=>x.name===materialName);
-      if(!m || isNaN(qty) || qty<=0){ skipped++; continue; }
+      const date = (idx.date>=0 ? (c[idx.date]||'').trim() : '') || todayStr();
+      let materialName = (c[idx.materialName]||'').trim();
+      // 若欄位內容是「包材明細」格式（例如「紙箱A（30x20cm）×5、氣泡布×1」）或含規格文字，只取第一項純名稱
+      materialName = extractPlainMaterialName(materialName);
+      const typeText = idx.type>=0 ? (c[idx.type]||'').trim() : '';
+      const qty = parseFloat(c[idx.qty]);
+      const remark = idx.remark>=0 ? (c[idx.remark]||'').trim() : '';
+
+      if(!materialName){ skipped++; reasons.push(`第 ${i+1} 列：包材名稱空白，已略過`); continue; }
+      const m = findMaterialByFlexibleName(materialName);
+      if(!m){ skipped++; reasons.push(`第 ${i+1} 列：找不到包材「${materialName}」（請確認名稱與「包材設定」裡的完全一致），已略過`); continue; }
+      if(isNaN(qty) || qty<=0){ skipped++; reasons.push(`第 ${i+1} 列「${materialName}」：數量無效（${c[idx.qty]}），已略過`); continue; }
       const type = typeText==='入庫' ? 'in' : 'use';
       const newStock = type==='in' ? m.stock+qty : m.stock-qty;
-      if(newStock<0){ skipped++; continue; }
+      if(newStock<0){ skipped++; reasons.push(`第 ${i+1} 列「${materialName}」：剩餘量不足，已略過`); continue; }
       state.packagingRecords.unshift({
         id:uid(), date, materialId:m.id, materialName:m.name, type, qty, price:m.price, amount:qty*m.price, remark,
         timestamp: nowStr(), byName: currentUser.name, byAccount: currentUser.account
@@ -2181,7 +2428,8 @@ document.getElementById('importMatFile').addEventListener('change', function(e){
       added++;
     }
     await saveData(); renderAll();
-    showToast(`包材紀錄匯入完成：新增 ${added} 筆、略過 ${skipped} 筆（包材不存在或剩餘量不足）`);
+    showToast(`包材紀錄匯入完成：新增 ${added} 筆、略過 ${skipped} 筆`);
+    if(reasons.length>0) alert('略過明細：\n'+summarizeSkipReasons(reasons));
     e.target.value='';
   };
   reader.readAsText(file, 'UTF-8');
@@ -2460,10 +2708,123 @@ document.getElementById('btnClearMaterialSuggest').addEventListener('click', ()=
   clearSuggestionList(['materialNames','materialSpecs'], '包材名稱／規格');
 });
 
+/* ---------- Account management (admin only can add/delete) ---------- */
+document.getElementById('btnAddAccount').addEventListener('click', async ()=>{
+  if(!requireAdmin()) return;
+  const name = document.getElementById('aName').value.trim();
+  const account = document.getElementById('aAccount').value.trim();
+  if(!name || !account){ showToast('請完整填寫姓名與工號', true); return; }
+  if(state.users.some(u=>u.account===account)){ alertWarn('此工號帳號已存在，請確認後再試'); return; }
+  state.users.push({
+    account, name, password: account, isAdmin: false,
+    createdAt: nowStr(), createdBy: currentUser.name
+  });
+  document.getElementById('aName').value='';
+  document.getElementById('aAccount').value='';
+  await saveData(); renderAll();
+  showToast('已新增帳號：'+name+'（'+account+'）');
+});
+
+function renderAccountTable(){
+  const addBtn = document.getElementById('btnAddAccount');
+  if(addBtn) addBtn.disabled = !(currentUser && currentUser.isAdmin);
+  const tbody = document.querySelector('#accountTable tbody');
+  if(!tbody) return;
+  tbody.innerHTML='';
+  if(!currentUser || !currentUser.isAdmin){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-hint">僅管理者可使用帳號管理功能</td></tr>';
+    renderPager('pagerAccount','accounts',0);
+    return;
+  }
+  if(state.users.length===0){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-hint">尚無帳號</td></tr>';
+    renderPager('pagerAccount','accounts',0);
+    return;
+  }
+  const {slice} = paginate(state.users, 'accounts');
+  slice.forEach(u=>{
+    const tr = document.createElement('tr');
+    tr.setAttribute('data-rid', u.account);
+    const canDelete = currentUser.isAdmin && !u.isAdmin && u.account!==currentUser.account;
+    tr.innerHTML = `<td>${escapeHtml(u.name)}</td>
+      <td>${escapeHtml(u.account)}</td>
+      <td>${u.isAdmin ? '<span class="role" style="background:var(--yellow);color:var(--blue);padding:2px 8px;border-radius:20px;font-size:11px;font-weight:900;">管理者</span>' : '一般使用者'}</td>
+      <td>${whoWhenHtml(u.createdBy, u.createdAt)}</td>
+      <td class="row-actions">
+        <button data-account="${u.account}" class="editAccount" ${currentUser.isAdmin?'':'disabled'}>編輯</button>
+        <button data-account="${u.account}" class="delAccount delBtn" ${canDelete?'':'disabled'}>刪除</button>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+  tbody.querySelectorAll('.editAccount').forEach(b=>b.addEventListener('click', e=>startEditAccount(e.target.dataset.account)));
+  tbody.querySelectorAll('.delAccount').forEach(b=>b.addEventListener('click', async e=>{
+    if(!requireAdmin()) return;
+    const account = e.target.dataset.account;
+    const u = state.users.find(x=>x.account===account);
+    if(!u) return;
+    if(u.isAdmin){ alertWarn('無法刪除管理者帳號'); return; }
+    if(account===currentUser.account){ alertWarn('無法刪除自己目前登入的帳號'); return; }
+    if(!confirm(`確定要刪除帳號「${u.name}（${u.account}）」？`)) return;
+    state.users = state.users.filter(x=>x.account!==account);
+    await saveData(); renderAll();
+    showToast('已刪除帳號：'+u.name);
+  }));
+  renderPager('pagerAccount','accounts', state.users.length);
+}
+
+function startEditAccount(account){
+  if(!requireAdmin()) return;
+  const u = state.users.find(x=>x.account===account);
+  if(!u) return;
+  const row = document.querySelector(`#accountTable tr[data-rid="${account}"]`);
+  if(!row) return;
+  row.innerHTML = `
+    <td class="edit-cell"><input type="text" value="${escapeHtml(u.name)}" id="eAName"></td>
+    <td class="edit-cell"><input type="text" value="${escapeHtml(u.account)}" id="eAAccount"></td>
+    <td class="edit-cell"><select id="eAIsAdmin">
+      <option value="false" ${!u.isAdmin?'selected':''}>一般使用者</option>
+      <option value="true" ${u.isAdmin?'selected':''}>管理者</option>
+    </select></td>
+    <td style="color:var(--muted);font-size:11px;">工號若變更，密碼不會自動跟著改變</td>
+    <td class="row-actions">
+      <button id="eASave">儲存</button>
+      <button id="eACancel">取消</button>
+    </td>`;
+  document.getElementById('eASave').addEventListener('click', async ()=>{
+    const newName = document.getElementById('eAName').value.trim();
+    const newAccount = document.getElementById('eAAccount').value.trim();
+    const newIsAdmin = document.getElementById('eAIsAdmin').value === 'true';
+    if(!newName || !newAccount){ alertWarn('姓名與工號不能為空'); return; }
+    if(newAccount !== u.account && state.users.some(x=>x.account===newAccount)){
+      alertWarn('此工號帳號已被其他人使用，請改一個');
+      return;
+    }
+    if(u.isAdmin && !newIsAdmin){
+      const otherAdmins = state.users.filter(x=>x.account!==u.account && x.isAdmin).length;
+      if(otherAdmins===0){ alertWarn('至少需保留一位管理者，無法將唯一的管理者改為一般使用者'); return; }
+    }
+    const oldAccount = u.account;
+    u.name = newName;
+    u.account = newAccount;
+    u.isAdmin = newIsAdmin;
+    u.updatedAt = nowStr();
+    u.updatedBy = currentUser.name;
+    // 若編輯的正是目前登入的帳號本身，同步更新登入狀態，避免自己被登出
+    if(currentUser.account === oldAccount){
+      currentUser = { account: newAccount, name: newName, isAdmin: newIsAdmin };
+      await persistSession();
+    }
+    await saveData(); renderAll();
+    showToast('帳號資料已更新');
+  });
+  document.getElementById('eACancel').addEventListener('click', renderAll);
+}
+
 function renderAll(){
   renderAuth();
   renderProductTable();
   renderMaterialDefTable();
+  renderAccountTable();
   refreshDropdowns();
   refreshAutocompleteLists();
   renderRecordTables();
