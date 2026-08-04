@@ -154,6 +154,23 @@
   .badge.ok{background:var(--ok);}
   .badge.warn{background:var(--warn);}
   .badge.danger{background:var(--danger);}
+  .badge-icon{
+    position:absolute;top:10px;right:10px;
+    width:26px;height:26px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;line-height:1;
+  }
+  .badge-icon.warn{background:var(--yellow);color:var(--blue);}
+  .badge-icon.danger{background:var(--danger);color:#fff;}
+  .stock-value-big{font-size:20px;font-weight:900;color:var(--text);}
+  .multi-select-dropdown{
+    display:none;position:absolute;z-index:60;top:100%;left:0;right:0;margin-top:4px;
+    background:#fff;border:1.5px solid var(--lightblue);border-radius:10px;
+    max-height:220px;overflow-y:auto;box-shadow:var(--shadow);
+  }
+  .ms-option{padding:8px 12px;font-size:13px;cursor:pointer;}
+  .ms-option:hover{background:var(--beige);}
+  .ms-empty{padding:8px 12px;font-size:12px;color:var(--muted);}
   .stock-card h3{font-size:15px;font-weight:900;margin:0 0 8px;color:var(--text);padding-right:60px;}
   .stock-row{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:4px;}
   .stock-row b{color:var(--text);font-weight:700;}
@@ -305,7 +322,7 @@
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="dashboard">📊 儀表板</button>
-    <button class="tab-btn" data-tab="entry">📝 每日填寫</button>
+    <button class="tab-btn" data-tab="entry">📝 出貨填寫</button>
     <button class="tab-btn" data-tab="products">📦 商品設定</button>
     <button class="tab-btn" data-tab="materials">🧾 包材設定</button>
     <button class="tab-btn" data-tab="accounts" id="tabBtnAccounts">🔑 帳號管理</button>
@@ -315,7 +332,7 @@
   <div class="view active" id="view-dashboard">
 
     <div class="card filter-card">
-      <div class="section-title" style="margin-top:0;"><span class="dot"></span>篩選資料區間（台灣時間 GMT+8）</div>
+      <div class="section-title" style="margin-top:0;">⏱ 時段設定（台灣時間 GMT+8）</div>
       <div class="form-grid">
         <div>
           <label>快速選擇</label>
@@ -330,7 +347,6 @@
         </div>
         <div id="customStartWrap" style="display:none;"><label>起始日期</label><input type="date" id="rangeStart"></div>
         <div id="customEndWrap" style="display:none;"><label>結束日期</label><input type="date" id="rangeEnd"></div>
-        <div><button class="btn" id="btnApplyRange">套用篩選</button></div>
       </div>
     </div>
 
@@ -343,18 +359,24 @@
       <div class="grid-summary" id="summaryMaterial"></div>
     </div>
 
-    <div class="section-title"><span class="dot"></span>商品即時庫存</div>
-    <div class="card">
-      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 交叉篩選：商品名稱／目前庫存／安全庫存（可空格分隔多條件）">
-      <div id="stockGrid" class="stock-grid"></div>
-      <div id="pagerStockProducts"></div>
-    </div>
-
-    <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
-    <div class="card">
-      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 交叉篩選：包材名稱／剩餘量／安全庫存（可空格分隔多條件）">
-      <div id="matStockGrid" class="stock-grid"></div>
-      <div id="pagerStockMaterials"></div>
+    <div class="card filter-card">
+      <div class="section-title" style="margin-top:0;">🔧 進階條件</div>
+      <div class="form-grid">
+        <div style="position:relative;">
+          <label>商品名稱（可多選）</label>
+          <input type="text" id="advProductInput" placeholder="🔍 輸入關鍵字搜尋商品" autocomplete="off">
+          <div class="multi-select-dropdown" id="advProductDropdown"></div>
+          <div class="mat-chip-list" id="advProductChips" style="margin-top:8px;"></div>
+        </div>
+        <div style="position:relative;">
+          <label>包材規格（可多選）</label>
+          <input type="text" id="advMaterialInput" placeholder="🔍 輸入關鍵字搜尋包材（如：破壞袋／紙箱）" autocomplete="off">
+          <div class="multi-select-dropdown" id="advMaterialDropdown"></div>
+          <div class="mat-chip-list" id="advMaterialChips" style="margin-top:8px;"></div>
+        </div>
+        <div><button class="btn" id="btnApplyRange">套用篩選</button></div>
+      </div>
+      <div class="hint-line">💡 「商品名稱」「包材規格」篩選只會影響下方「出貨紀錄」「包材紀錄」表格的顯示內容，不會篩選商品／包材即時庫存卡片。</div>
     </div>
 
     <div class="two-col">
@@ -376,6 +398,20 @@
           <div id="pagerMatDash"></div>
         </div>
       </div>
+    </div>
+
+    <div class="section-title"><span class="dot"></span>商品即時庫存</div>
+    <div class="card">
+      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 交叉篩選：商品名稱／目前庫存／安全庫存（可空格分隔多條件）">
+      <div id="stockGrid" class="stock-grid"></div>
+      <div id="pagerStockProducts"></div>
+    </div>
+
+    <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
+    <div class="card">
+      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 交叉篩選：包材名稱／剩餘量／安全庫存（可空格分隔多條件）">
+      <div id="matStockGrid" class="stock-grid"></div>
+      <div id="pagerStockMaterials"></div>
     </div>
   </div>
 
@@ -422,7 +458,8 @@
       <div class="preview-line" id="shipPreview">選擇商品並輸入數量</div>
       <div class="hint-line">💡 出貨（含贈品）送出後，系統會依商品與贈品的預設包材設定，彈出視窗讓你確認／調整後，把所有需要的包材<b>合併成一筆</b>包材使用紀錄；退貨不影響庫存也不支援贈品。匯入 CSV 為批次作業，不會逐筆彈出視窗，完成後會統一彙總彈出一次。</div>
 
-      <div class="table-wrap" style="margin-top:16px;"><table id="shipmentTableFull"><thead>
+      <input type="text" id="shipFullSearch" class="stock-search" style="margin-top:16px;" placeholder="🔍 交叉篩選：商品名稱／類型／數量／備註／填寫人（可空格分隔多條件）">
+      <div class="table-wrap" style="margin-top:12px;"><table id="shipmentTableFull"><thead>
         <tr><th>日期</th><th>商品名稱</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerShipFull"></div>
@@ -457,7 +494,8 @@
       <div class="preview-line" id="matPreview">選擇包材、類型並輸入數量</div>
       <div class="hint-line">💡 此區塊為單一包材的手動紀錄；出貨自動建立的多項包材，會合併成一筆顯示在下表中。</div>
 
-      <div class="table-wrap" style="margin-top:16px;"><table id="materialTableFull"><thead>
+      <input type="text" id="matFullSearch" class="stock-search" style="margin-top:16px;" placeholder="🔍 交叉篩選：包材名稱／類型／金額／備註／填寫人（可空格分隔多條件）">
+      <div class="table-wrap" style="margin-top:12px;"><table id="materialTableFull"><thead>
         <tr><th>日期</th><th>包材名稱</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerMatFull"></div>
@@ -498,7 +536,8 @@
       <div style="margin-top:16px;"><button class="btn" id="btnAddProduct">＋ 新增商品</button></div>
 
       <div class="hint-line">💡 設定「出貨預設包材」後，出貨時系統會自動帶出建議的包材使用數量，可一次設定多種包材。</div>
-      <div class="table-wrap" style="margin-top:16px;"><table id="productTable"><thead>
+      <input type="text" id="productSearch" class="stock-search" placeholder="🔍 交叉篩選：商品名稱／尺寸／目前庫存／安全庫存／備註（可空格分隔多條件）">
+      <div class="table-wrap" style="margin-top:12px;"><table id="productTable"><thead>
         <tr><th>商品名稱</th><th>尺寸</th><th>目前庫存</th><th>安全庫存</th><th>備註</th><th>最後操作</th><th>出貨預設包材</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerProduct"></div>
@@ -527,7 +566,8 @@
         <div><label>備註</label><input type="text" id="mRemark" placeholder="選填"></div>
         <div><button class="btn secondary" id="btnAddMaterialDef">＋ 新增包材</button></div>
       </div>
-      <div class="table-wrap" style="margin-top:16px;"><table id="materialDefTable"><thead>
+      <input type="text" id="materialSearch" class="stock-search" placeholder="🔍 交叉篩選：包材名稱／規格／剩餘量／安全庫存／備註（可空格分隔多條件）">
+      <div class="table-wrap" style="margin-top:12px;"><table id="materialDefTable"><thead>
         <tr><th>包材名稱</th><th>規格</th><th>單價</th><th>剩餘量</th><th>安全庫存</th><th>備註</th><th>最後操作</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerMaterialDef"></div>
@@ -544,14 +584,15 @@
         <div><button class="btn" id="btnAddAccount">＋ 新增帳號</button></div>
       </div>
       <div class="hint-line">💡 新帳號一律為「一般使用者」權限，密碼預設與工號相同，該同事登入後可自行透過右上角「忘記密碼」重設自己的密碼。</div>
-      <div class="table-wrap" style="margin-top:16px;"><table id="accountTable"><thead>
+      <input type="text" id="accountSearch" class="stock-search" placeholder="🔍 交叉篩選：姓名／工號／權限（可空格分隔多條件）">
+      <div class="table-wrap" style="margin-top:12px;"><table id="accountTable"><thead>
         <tr><th>姓名</th><th>工號（帳號）</th><th>權限</th><th>建立資訊</th><th></th></tr>
       </thead><tbody></tbody></table></div>
       <div id="pagerAccount"></div>
     </div>
   </div>
 
-  <div class="footer-tip">資料設定好之後，之後每天只要到「每日填寫」輸入數量，儀表板就會自動更新最新狀態。</div>
+  <div class="footer-tip">資料設定好之後，之後每天只要到「出貨填寫」輸入數量，儀表板就會自動更新最新狀態。</div>
 </div>
 
 <div id="materialModalRoot"></div>
@@ -597,6 +638,8 @@ let state = {
 
 let currentUser = null;
 let rangeState = { mode:'week', start:null, end:null };
+let advFilter = { productIds: [], materialIds: [] };
+let tempAdvFilter = { productIds: [], materialIds: [] };
 let newProductMaterials = [];
 let newShipGifts = [];
 let stockFilter = { product:'', material:'' };
@@ -919,10 +962,95 @@ document.getElementById('btnApplyRange').addEventListener('click', ()=>{
   rangeState.mode = document.getElementById('rangeMode').value;
   rangeState.start = document.getElementById('rangeStart').value || null;
   rangeState.end = document.getElementById('rangeEnd').value || null;
+  advFilter.productIds = [...tempAdvFilter.productIds];
+  advFilter.materialIds = [...tempAdvFilter.materialIds];
   pagers.shipDash.page = 1; pagers.matDash.page = 1;
   updateRangeModeHint();
   renderAll();
 });
+
+/* ---------- 進階條件：商品名稱／包材規格 多選搜尋下拉 ---------- */
+function renderMsDropdown(dropdownId, options){
+  const el = document.getElementById(dropdownId);
+  if(options.length===0){
+    el.innerHTML = '<div class="ms-empty">沒有符合的項目</div>';
+  } else {
+    el.innerHTML = options.map(o=>`<div class="ms-option" data-id="${o.id}">${escapeHtml(o.label)}</div>`).join('');
+  }
+  el.style.display = 'block';
+}
+function closeMsDropdown(dropdownId){
+  const el = document.getElementById(dropdownId);
+  if(el){ el.style.display='none'; el.innerHTML=''; }
+}
+function renderAdvProductChips(){
+  const el = document.getElementById('advProductChips');
+  if(tempAdvFilter.productIds.length===0){
+    el.innerHTML = '<span style="font-size:12px;color:var(--muted);">未選擇（不篩選商品）</span>';
+    return;
+  }
+  el.innerHTML = tempAdvFilter.productIds.map(id=>{
+    const p = state.products.find(x=>x.id===id);
+    const label = p ? productOptionLabel(p) : '（已刪除的商品）';
+    return `<span class="mat-chip">${escapeHtml(label)}<button type="button" data-id="${id}" class="rmAdvProduct">✕</button></span>`;
+  }).join('');
+  el.querySelectorAll('.rmAdvProduct').forEach(b=>b.addEventListener('click', e=>{
+    tempAdvFilter.productIds = tempAdvFilter.productIds.filter(id=>id!==e.target.dataset.id);
+    renderAdvProductChips();
+  }));
+}
+function renderAdvMaterialChips(){
+  const el = document.getElementById('advMaterialChips');
+  if(tempAdvFilter.materialIds.length===0){
+    el.innerHTML = '<span style="font-size:12px;color:var(--muted);">未選擇（不篩選包材）</span>';
+    return;
+  }
+  el.innerHTML = tempAdvFilter.materialIds.map(id=>{
+    const m = state.materials.find(x=>x.id===id);
+    const label = m ? materialOptionLabel(m) : '（已刪除的包材）';
+    return `<span class="mat-chip">${escapeHtml(label)}<button type="button" data-id="${id}" class="rmAdvMaterial">✕</button></span>`;
+  }).join('');
+  el.querySelectorAll('.rmAdvMaterial').forEach(b=>b.addEventListener('click', e=>{
+    tempAdvFilter.materialIds = tempAdvFilter.materialIds.filter(id=>id!==e.target.dataset.id);
+    renderAdvMaterialChips();
+  }));
+}
+document.getElementById('advProductInput').addEventListener('input', e=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ closeMsDropdown('advProductDropdown'); return; }
+  const matches = state.products
+    .filter(p=>!tempAdvFilter.productIds.includes(p.id) && productOptionLabel(p).toLowerCase().includes(q))
+    .slice(0,20)
+    .map(p=>({id:p.id, label:productOptionLabel(p)}));
+  renderMsDropdown('advProductDropdown', matches);
+  document.querySelectorAll('#advProductDropdown .ms-option').forEach(opt=>opt.addEventListener('click', ()=>{
+    tempAdvFilter.productIds.push(opt.dataset.id);
+    document.getElementById('advProductInput').value='';
+    closeMsDropdown('advProductDropdown');
+    renderAdvProductChips();
+  }));
+});
+document.getElementById('advMaterialInput').addEventListener('input', e=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ closeMsDropdown('advMaterialDropdown'); return; }
+  const matches = state.materials
+    .filter(m=>!tempAdvFilter.materialIds.includes(m.id) && materialOptionLabel(m).toLowerCase().includes(q))
+    .slice(0,20)
+    .map(m=>({id:m.id, label:materialOptionLabel(m)}));
+  renderMsDropdown('advMaterialDropdown', matches);
+  document.querySelectorAll('#advMaterialDropdown .ms-option').forEach(opt=>opt.addEventListener('click', ()=>{
+    tempAdvFilter.materialIds.push(opt.dataset.id);
+    document.getElementById('advMaterialInput').value='';
+    closeMsDropdown('advMaterialDropdown');
+    renderAdvMaterialChips();
+  }));
+});
+document.addEventListener('click', e=>{
+  if(!e.target.closest('#advProductInput') && !e.target.closest('#advProductDropdown')) closeMsDropdown('advProductDropdown');
+  if(!e.target.closest('#advMaterialInput') && !e.target.closest('#advMaterialDropdown')) closeMsDropdown('advMaterialDropdown');
+});
+renderAdvProductChips();
+renderAdvMaterialChips();
 
 function computeRangeBounds(mode){
   mode = mode || rangeState.mode;
@@ -1206,14 +1334,21 @@ function materialUsagesLabel(p){
 }
 
 function renderProductTable(){
+  const searchEl = document.getElementById('productSearch');
+  if(searchEl) tableFilters.products = searchEl.value.trim();
+  const filtered = tableFilters.products
+    ? state.products.filter(p=>multiTermMatch([p.name,p.size,p.stock,p.safety,p.remark], tableFilters.products))
+    : state.products;
   const tbody = document.querySelector('#productTable tbody');
   tbody.innerHTML='';
-  if(state.products.length===0){
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-hint">尚未設定商品，請於上方新增</td></tr>';
+  if(filtered.length===0){
+    tbody.innerHTML = state.products.length===0
+      ? '<tr><td colspan="8" class="empty-hint">尚未設定商品，請於上方新增</td></tr>'
+      : '<tr><td colspan="8" class="empty-hint">找不到符合搜尋條件的商品</td></tr>';
     renderPager('pagerProduct','products',0);
     return;
   }
-  const {slice} = paginate(state.products, 'products');
+  const {slice} = paginate(filtered, 'products');
   slice.forEach(p=>{
     const tr = document.createElement('tr');
     tr.setAttribute('data-rid', p.id);
@@ -1238,7 +1373,7 @@ function renderProductTable(){
   }));
   tbody.querySelectorAll('.editProduct').forEach(b=>b.addEventListener('click', e=>startEditProduct(e.target.dataset.id)));
   tbody.querySelectorAll('.matSetProduct').forEach(b=>b.addEventListener('click', e=>openProductMaterialsModal(e.target.dataset.id)));
-  renderPager('pagerProduct','products', state.products.length);
+  renderPager('pagerProduct','products', filtered.length);
 }
 
 function startEditProduct(id){
@@ -1451,14 +1586,21 @@ document.getElementById('btnAddMaterialDef').addEventListener('click', async ()=
 });
 
 function renderMaterialDefTable(){
+  const searchEl = document.getElementById('materialSearch');
+  if(searchEl) tableFilters.materials = searchEl.value.trim();
+  const filtered = tableFilters.materials
+    ? state.materials.filter(m=>multiTermMatch([m.name,m.spec,m.stock,m.safety,m.remark], tableFilters.materials))
+    : state.materials;
   const tbody = document.querySelector('#materialDefTable tbody');
   tbody.innerHTML='';
-  if(state.materials.length===0){
-    tbody.innerHTML = '<tr><td colspan="8" class="empty-hint">尚未設定包材，請於上方新增</td></tr>';
+  if(filtered.length===0){
+    tbody.innerHTML = state.materials.length===0
+      ? '<tr><td colspan="8" class="empty-hint">尚未設定包材，請於上方新增</td></tr>'
+      : '<tr><td colspan="8" class="empty-hint">找不到符合搜尋條件的包材</td></tr>';
     renderPager('pagerMaterialDef','materials',0);
     return;
   }
-  const {slice} = paginate(state.materials, 'materials');
+  const {slice} = paginate(filtered, 'materials');
   slice.forEach(m=>{
     const tr = document.createElement('tr');
     tr.setAttribute('data-rid', m.id);
@@ -1481,7 +1623,7 @@ function renderMaterialDefTable(){
     await saveData(); renderAll();
   }));
   tbody.querySelectorAll('.editMaterial').forEach(b=>b.addEventListener('click', e=>startEditMaterial(e.target.dataset.id)));
-  renderPager('pagerMaterialDef','materials', state.materials.length);
+  renderPager('pagerMaterialDef','materials', filtered.length);
 }
 
 function startEditMaterial(id){
@@ -1656,7 +1798,7 @@ function updateShipPreview(){
   if(!currentUser){ el.textContent = '請先登入才能填寫紀錄'; return; }
   if(!p){ el.textContent = '請先於「商品設定」建立商品資料'; return; }
   if(type==='return'){ el.textContent = `退貨紀錄：不會異動「${p.name}」庫存（目前庫存 ${fmtNum(p.stock)}）`; return; }
-  if(isNaN(qty)){ el.textContent = `目前庫存 ${fmtNum(p.stock)}，輸入數量後會自動計算出貨後庫存`; return; }
+  if(isNaN(qty)){ el.textContent = `輸入數量後會自動計算出貨後庫存，目前庫存 ${fmtNum(p.stock)}`; return; }
   const result = p.stock - qty;
   el.textContent = result<0
     ? `⚠ 目前庫存 ${fmtNum(p.stock)}，出貨 ${fmtNum(qty)} 將導致庫存為負數，請重新確認`
@@ -1669,7 +1811,7 @@ function updateMatPreview(){
   const el = document.getElementById('matPreview');
   if(!currentUser){ el.textContent = '請先登入才能填寫包材紀錄'; return; }
   if(!m){ el.textContent = '請先於「包材設定」建立包材資料'; return; }
-  if(isNaN(qty)){ el.textContent = `目前剩餘量 ${fmtNum(m.stock)}，單價 ${fmtMoney(m.price)}，輸入數量後自動計算金額與剩餘量`; return; }
+  if(isNaN(qty)){ el.textContent = `輸入數量後自動計算金額與剩餘量，目前剩餘量 ${fmtNum(m.stock)}，單價 ${fmtMoney(m.price)}`; return; }
   const newStock = type==='in' ? m.stock+qty : m.stock-qty;
   const amount = qty*m.price;
   el.textContent = newStock<0
@@ -2440,8 +2582,20 @@ function renderRecordTables(){
   fillShipmentTable('shipmentTableFull','pagerShipFull', state.shipments, true, 'shipFull');
   fillMaterialTable('materialTableFull','pagerMatFull', state.packagingRecords, true, 'matFull');
 
-  const shipFiltered = state.shipments.filter(s=>inRange(s.date));
-  const matFiltered = state.packagingRecords.filter(m=>inRange(m.date));
+  let shipFiltered = state.shipments.filter(s=>inRange(s.date));
+  if(advFilter.productIds.length>0){
+    shipFiltered = shipFiltered.filter(s=>{
+      const ids = [s.productId, ...(s.gifts||[]).map(g=>g.productId)];
+      return ids.some(id=>advFilter.productIds.includes(id));
+    });
+  }
+  let matFiltered = state.packagingRecords.filter(m=>inRange(m.date));
+  if(advFilter.materialIds.length>0){
+    matFiltered = matFiltered.filter(r=>{
+      const ids = (r.items && r.items.length) ? r.items.map(it=>it.materialId) : [r.materialId];
+      return ids.some(id=>advFilter.materialIds.includes(id));
+    });
+  }
   fillShipmentTable('shipmentTableDash','pagerShipDash', shipFiltered, false, 'shipDash');
   fillMaterialTable('materialTableDash','pagerMatDash', matFiltered, false, 'matDash');
 }
@@ -2452,10 +2606,20 @@ function giftsLabel(gifts){
 }
 
 function fillShipmentTable(tableId, pagerId, fullList, editable, pagerKey){
+  if(pagerKey==='shipFull'){
+    const searchEl = document.getElementById('shipFullSearch');
+    if(searchEl) tableFilters.shipFull = searchEl.value.trim();
+    if(tableFilters.shipFull){
+      fullList = fullList.filter(r=>multiTermMatch(
+        [r.productName, r.shipType==='ship'?'出貨':'退貨', r.qty, r.remark, r.byName, (r.gifts||[]).map(g=>g.productName).join(' ')],
+        tableFilters.shipFull
+      ));
+    }
+  }
   const tbody = document.querySelector('#'+tableId+' tbody');
   tbody.innerHTML='';
   if(fullList.length===0){
-    tbody.innerHTML = `<tr><td colspan="${editable?8:7}" class="empty-hint">尚無紀錄</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${editable?8:7}" class="empty-hint">${pagerKey==='shipFull'&&tableFilters.shipFull?'找不到符合搜尋條件的紀錄':'尚無紀錄'}</td></tr>`;
     renderPager(pagerId, pagerKey, 0);
     return;
   }
@@ -2499,10 +2663,22 @@ function fillShipmentTable(tableId, pagerId, fullList, editable, pagerKey){
 }
 
 function fillMaterialTable(tableId, pagerId, fullList, editable, pagerKey){
+  if(pagerKey==='matFull'){
+    const searchEl = document.getElementById('matFullSearch');
+    if(searchEl) tableFilters.matFull = searchEl.value.trim();
+    if(tableFilters.matFull){
+      fullList = fullList.filter(r=>{
+        const isMulti = r.items && r.items.length;
+        const namesText = isMulti ? r.items.map(it=>it.materialName).join(' ') : r.materialName;
+        const amount = isMulti ? r.totalAmount : r.amount;
+        return multiTermMatch([namesText, r.type==='in'?'入庫':'使用', amount, r.remark, r.byName], tableFilters.matFull);
+      });
+    }
+  }
   const tbody = document.querySelector('#'+tableId+' tbody');
   tbody.innerHTML='';
   if(fullList.length===0){
-    tbody.innerHTML = `<tr><td colspan="${editable?7:6}" class="empty-hint">尚無包材紀錄</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${editable?7:6}" class="empty-hint">${pagerKey==='matFull'&&tableFilters.matFull?'找不到符合搜尋條件的紀錄':'尚無包材紀錄'}</td></tr>`;
     renderPager(pagerId, pagerKey, 0);
     return;
   }
@@ -2603,20 +2779,34 @@ function cardHtml(c){
 
 function stockCardHtml(item, unitLabel){
   const safety = item.safety || 0;
-  let status = 'ok', label='安全', pct = 100;
+  let status = 'ok', badgeContent = '<span class="badge ok">安全</span>';
   if(safety>0){
-    pct = Math.max(0, Math.min(100, (item.stock/ (safety*2)) *100));
-    if(item.stock<=safety){ status='danger'; label='低於安全庫存'; }
-    else if(item.stock<=safety*1.5){ status='warn'; label='接近安全庫存'; }
+    if(item.stock<=safety){
+      status='danger';
+      badgeContent = '<span class="badge-icon danger" title="已達／低於安全庫存">⛔</span>';
+    } else if(item.stock<=safety*1.5){
+      status='warn';
+      badgeContent = '<span class="badge-icon warn" title="接近安全庫存">❗</span>';
+    }
   }
+  const pct = safety>0 ? Math.max(0, Math.min(100, (item.stock/(safety*2))*100)) : 100;
   return `<div class="stock-card">
-      <span class="badge ${status}">${label}</span>
+      ${badgeContent}
       <h3>${escapeHtml(item.name)}</h3>
-      <div class="stock-row"><span>${unitLabel}</span><b>${fmtNum(item.stock)}</b></div>
+      <div class="stock-row"><span>${unitLabel}</span><span class="stock-value-big">${fmtNum(item.stock)}</span></div>
       <div class="stock-row"><span>安全庫存</span><b>${fmtNum(safety)}</b></div>
       <div class="bar-track"><div class="bar-fill ${status==='ok'?'':status}" style="width:${pct}%"></div></div>
     </div>`;
 }
+
+/* 通用交叉篩選：欄位陣列中任一欄位符合「每個關鍵字」即算符合（AND 條件、OR 欄位） */
+function multiTermMatch(fields, query){
+  if(!query) return true;
+  const terms = query.toLowerCase().split(/[\s,，、]+/).filter(Boolean);
+  if(terms.length===0) return true;
+  return terms.every(term=> fields.some(f=> String(f??'').toLowerCase().includes(term)));
+}
+let tableFilters = { accounts:'', materials:'', products:'', shipFull:'', matFull:'' };
 
 function itemMatchesStockSearch(item, query){
   if(!query) return true;
@@ -2672,6 +2862,26 @@ document.getElementById('stockProductSearch').addEventListener('input', ()=>{
 document.getElementById('stockMaterialSearch').addEventListener('input', ()=>{
   pagers.stockMaterials.page = 1;
   renderStockGrid();
+});
+document.getElementById('productSearch').addEventListener('input', ()=>{
+  pagers.products.page = 1;
+  renderProductTable();
+});
+document.getElementById('materialSearch').addEventListener('input', ()=>{
+  pagers.materials.page = 1;
+  renderMaterialDefTable();
+});
+document.getElementById('accountSearch').addEventListener('input', ()=>{
+  pagers.accounts.page = 1;
+  renderAccountTable();
+});
+document.getElementById('shipFullSearch').addEventListener('input', ()=>{
+  pagers.shipFull.page = 1;
+  fillShipmentTable('shipmentTableFull','pagerShipFull', state.shipments, true, 'shipFull');
+});
+document.getElementById('matFullSearch').addEventListener('input', ()=>{
+  pagers.matFull.page = 1;
+  fillMaterialTable('materialTableFull','pagerMatFull', state.packagingRecords, true, 'matFull');
 });
 
 function recordAutocomplete(listKey, value){
@@ -2741,7 +2951,17 @@ function renderAccountTable(){
     renderPager('pagerAccount','accounts',0);
     return;
   }
-  const {slice} = paginate(state.users, 'accounts');
+  const searchEl = document.getElementById('accountSearch');
+  if(searchEl) tableFilters.accounts = searchEl.value.trim();
+  const filtered = tableFilters.accounts
+    ? state.users.filter(u=>multiTermMatch([u.name,u.account,u.isAdmin?'管理者':'一般使用者'], tableFilters.accounts))
+    : state.users;
+  if(filtered.length===0){
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-hint">找不到符合搜尋條件的帳號</td></tr>';
+    renderPager('pagerAccount','accounts',0);
+    return;
+  }
+  const {slice} = paginate(filtered, 'accounts');
   slice.forEach(u=>{
     const tr = document.createElement('tr');
     tr.setAttribute('data-rid', u.account);
@@ -2769,7 +2989,7 @@ function renderAccountTable(){
     await saveData(); renderAll();
     showToast('已刪除帳號：'+u.name);
   }));
-  renderPager('pagerAccount','accounts', state.users.length);
+  renderPager('pagerAccount','accounts', filtered.length);
 }
 
 function startEditAccount(account){
