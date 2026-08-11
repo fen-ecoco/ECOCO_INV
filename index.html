@@ -134,6 +134,23 @@
   .stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
 
   .filter-card{margin-bottom:20px;}
+  .dash-zone{
+    border:2px solid #EFE7D6;border-radius:20px;
+    padding:20px;margin-bottom:28px;background:#FFFFFF;
+    box-shadow:var(--shadow);position:relative;
+  }
+  .dash-zone:last-child{margin-bottom:0;}
+  .dash-zone-accent{
+    height:6px;border-radius:20px 20px 0 0;
+    margin:-20px -20px 20px -20px;
+  }
+  .dash-zone-1 .dash-zone-accent{background:var(--orange);}
+  .dash-zone-2 .dash-zone-accent{background:var(--darkblue);}
+  .dash-zone-3 .dash-zone-accent{background:var(--blue);}
+  .dash-zone .filter-card,
+  .dash-zone .overview-row,
+  .dash-zone .two-col,
+  .dash-zone .section-title:first-of-type{margin-top:0;}
 
   .stock-search{
     max-width:320px;margin-bottom:12px;
@@ -347,16 +364,8 @@
         </div>
         <div id="customStartWrap" style="display:none;"><label>起始日期</label><input type="date" id="rangeStart"></div>
         <div id="customEndWrap" style="display:none;"><label>結束日期</label><input type="date" id="rangeEnd"></div>
+        <div><button class="btn" id="btnApplyRangeTime">套用篩選</button></div>
       </div>
-    </div>
-
-    <div class="overview-row">
-      <div class="row-label">📦 商品出貨總覽</div>
-      <div class="grid-summary" id="summaryProduct"></div>
-    </div>
-    <div class="overview-row mat">
-      <div class="row-label">🧾 包材使用總覽</div>
-      <div class="grid-summary" id="summaryMaterial"></div>
     </div>
 
     <div class="card filter-card">
@@ -379,39 +388,57 @@
       <div class="hint-line">💡 「商品名稱」「包材規格」篩選只會影響下方「出貨紀錄」「包材紀錄」表格的顯示內容，不會篩選商品／包材即時庫存卡片。</div>
     </div>
 
-    <div class="two-col">
-      <div>
-        <div class="section-title"><span class="dot"></span>出貨紀錄（依篩選區間）</div>
-        <div class="card">
-          <div class="table-wrap"><table id="shipmentTableDash"><thead>
-            <tr><th>日期</th><th>商品名稱</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th></tr>
-          </thead><tbody></tbody></table></div>
-          <div id="pagerShipDash"></div>
-        </div>
+    <div class="dash-zone dash-zone-1">
+      <div class="dash-zone-accent"></div>
+      <div class="overview-row">
+        <div class="row-label">📦 商品出貨總覽</div>
+        <div class="grid-summary" id="summaryProduct"></div>
       </div>
-      <div>
-        <div class="section-title mat"><span class="dot"></span>包材紀錄（依篩選區間）</div>
-        <div class="card">
-          <div class="table-wrap"><table id="materialTableDash"><thead>
-            <tr><th>日期</th><th>包材名稱</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th></tr>
-          </thead><tbody></tbody></table></div>
-          <div id="pagerMatDash"></div>
+      <div class="overview-row mat">
+        <div class="row-label">🧾 包材使用總覽</div>
+        <div class="grid-summary" id="summaryMaterial"></div>
+      </div>
+    </div>
+
+    <div class="dash-zone dash-zone-2">
+      <div class="dash-zone-accent"></div>
+      <div class="two-col">
+        <div>
+          <div class="section-title" style="margin-top:0;"><span class="dot"></span>出貨紀錄（依篩選區間）</div>
+          <div class="card">
+            <div class="table-wrap"><table id="shipmentTableDash"><thead>
+              <tr><th>日期</th><th>商品名稱</th><th>類型</th><th>數量</th><th>贈品明細</th><th>備註</th><th>填寫資訊</th></tr>
+            </thead><tbody></tbody></table></div>
+            <div id="pagerShipDash"></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-title mat" style="margin-top:0;"><span class="dot"></span>包材紀錄（依篩選區間）</div>
+          <div class="card">
+            <div class="table-wrap"><table id="materialTableDash"><thead>
+              <tr><th>日期</th><th>包材名稱</th><th>類型</th><th>金額</th><th>備註</th><th>填寫資訊</th></tr>
+            </thead><tbody></tbody></table></div>
+            <div id="pagerMatDash"></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="section-title"><span class="dot"></span>商品即時庫存</div>
-    <div class="card">
-      <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 交叉篩選：商品名稱／目前庫存／安全庫存（可空格分隔多條件）">
-      <div id="stockGrid" class="stock-grid"></div>
-      <div id="pagerStockProducts"></div>
-    </div>
+    <div class="dash-zone dash-zone-3">
+      <div class="dash-zone-accent"></div>
+      <div class="section-title" style="margin-top:0;"><span class="dot"></span>商品即時庫存</div>
+      <div class="card">
+        <input type="text" id="stockProductSearch" class="stock-search" placeholder="🔍 交叉篩選：商品名稱／目前庫存／安全庫存（可空格分隔多條件）">
+        <div id="stockGrid" class="stock-grid"></div>
+        <div id="pagerStockProducts"></div>
+      </div>
 
-    <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
-    <div class="card">
-      <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 交叉篩選：包材名稱／剩餘量／安全庫存（可空格分隔多條件）">
-      <div id="matStockGrid" class="stock-grid"></div>
-      <div id="pagerStockMaterials"></div>
+      <div class="section-title mat"><span class="dot"></span>包材即時庫存</div>
+      <div class="card">
+        <input type="text" id="stockMaterialSearch" class="stock-search" placeholder="🔍 交叉篩選：包材名稱／剩餘量／安全庫存（可空格分隔多條件）">
+        <div id="matStockGrid" class="stock-grid"></div>
+        <div id="pagerStockMaterials"></div>
+      </div>
     </div>
   </div>
 
@@ -685,7 +712,21 @@ function taiwanNowParts(){
 }
 function ymd(y,m,day){ return `${y}-${pad2(m+1)}-${pad2(day)}`; }
 function todayStr(){ const {y,m,day} = taiwanNowParts(); return ymd(y,m,day); }
-function nowStr(){ const {y,m,day,hh,mi,ss} = taiwanNowParts(); return `${ymd(y,m,day)} ${pad2(hh)}:${pad2(mi)}:${pad2(ss)}`; }
+function nowStr(){ const {y,m,day,hh,mi,ss} = taiwanNowParts(); return `${y}/${pad2(m+1)}/${pad2(day)} ${pad2(hh)}:${pad2(mi)}:${pad2(ss)}`; }
+/* 顯示用：把內部儲存的 YYYY-MM-DD（或含~的區間字串）轉成 YYYY/MM/DD 呈現，
+   內部儲存、date input 的 value、CSV 內部比對都仍維持 YYYY-MM-DD，不受影響 */
+function formatDateDisplay(dateStr){
+  if(!dateStr) return dateStr;
+  return String(dateStr).replace(/-/g, '/');
+}
+/* 匯入用：不管使用者填的是 2026/07/29 或 2026-07-29，一律正規化回 YYYY-MM-DD 內部格式再儲存 */
+function normalizeDateForStorage(str){
+  const s = (str||'').trim();
+  if(!s) return '';
+  const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m){ return `${m[1]}-${pad2(parseInt(m[2],10))}-${pad2(parseInt(m[3],10))}`; }
+  return s;
+}
 
 function escapeHtml(str){
   return String(str).replace(/[&<>"']/g, s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
@@ -958,7 +999,7 @@ document.getElementById('rangeMode').addEventListener('change', e=>{
   document.getElementById('customEndWrap').style.display = isCustom ? '' : 'none';
   updateRangeModeHint();
 });
-document.getElementById('btnApplyRange').addEventListener('click', ()=>{
+function applyDashboardFilters(){
   rangeState.mode = document.getElementById('rangeMode').value;
   rangeState.start = document.getElementById('rangeStart').value || null;
   rangeState.end = document.getElementById('rangeEnd').value || null;
@@ -967,7 +1008,9 @@ document.getElementById('btnApplyRange').addEventListener('click', ()=>{
   pagers.shipDash.page = 1; pagers.matDash.page = 1;
   updateRangeModeHint();
   renderAll();
-});
+}
+document.getElementById('btnApplyRange').addEventListener('click', applyDashboardFilters);
+document.getElementById('btnApplyRangeTime').addEventListener('click', applyDashboardFilters);
 
 /* ---------- 進階條件：商品名稱／包材規格 多選搜尋下拉 ---------- */
 function renderMsDropdown(dropdownId, options){
@@ -1081,13 +1124,13 @@ function updateRangeModeHint(){
   const mode = document.getElementById('rangeMode').value;
   if(mode==='today'){
     const {startStr} = computeRangeBounds('today');
-    el.textContent = startStr;
+    el.textContent = formatDateDisplay(startStr);
   } else if(mode==='week' || mode==='month'){
     const {startStr,endStr} = computeRangeBounds(mode);
-    el.textContent = startStr + '~' + endStr.slice(5);
+    el.textContent = formatDateDisplay(startStr) + '~' + formatDateDisplay(endStr).slice(5);
   } else if(mode==='all'){
     const {startStr,endStr} = computeRangeBounds('all');
-    el.textContent = startStr + '~' + endStr;
+    el.textContent = formatDateDisplay(startStr) + '~' + formatDateDisplay(endStr);
   } else {
     el.textContent = '';
   }
@@ -1305,6 +1348,11 @@ document.getElementById('btnAddProduct').addEventListener('click', async ()=>{
   const remark = document.getElementById('pRemark').value.trim();
   if(!name || isNaN(stock)){ showToast('請完整填寫商品名稱與庫存', true); return; }
   if(stock<0 || (!isNaN(safety) && safety<0)){ alertWarn('庫存量與安全庫存不能為負數'); return; }
+  const existingProduct = state.products.find(p=>p.name.trim().toLowerCase()===name.toLowerCase());
+  if(existingProduct){
+    const proceed = confirm(`商品名稱「${name}」已經存在於資料庫中！\n\n按「確定」會新增一筆同名的新商品（可能造成重複資料）。\n按「取消」則不會新增，請改用表格中該筆資料的「編輯」按鈕修改既有內容。`);
+    if(!proceed){ showToast('已取消新增，請至表格找到「'+name+'」使用編輯功能'); return; }
+  }
   state.products.push({
     id:uid(), name, size, stock, safety: isNaN(safety)?0:safety, remark,
     materialUsages: newProductMaterials.map(r=>({materialId:r.materialId, perUnit:r.perUnit})),
@@ -1516,6 +1564,16 @@ document.getElementById('importProductFile').addEventListener('change', function
       alertWarn('CSV 標題列找不到「商品名稱」或「目前庫存」欄位，請確認格式是否正確（建議先下載匯入範本比對）');
       e.target.value=''; return;
     }
+    // 預先掃描：有幾筆商品名稱已存在於資料庫中，統一彈窗確認一次，避免逐筆打斷匯入
+    const dupNames = new Set();
+    for(let i=1;i<rows.length;i++){
+      const name = (rows[i][idx.name]||'').trim();
+      if(name && state.products.some(p=>p.name===name)) dupNames.add(name);
+    }
+    if(dupNames.size>0){
+      const proceed = confirm(`本次匯入的資料中，有 ${dupNames.size} 筆商品名稱已存在於資料庫中：\n${[...dupNames].slice(0,10).join('、')}${dupNames.size>10?'...等':''}\n\n按「確定」將以匯入檔案內容更新這些既有商品資料（不會新增重複資料）。\n按「取消」則整個匯入動作都會停止。`);
+      if(!proceed){ showToast('已取消匯入'); e.target.value=''; return; }
+    }
     let added=0, updated=0, skipped=0;
     const reasons = [];
     for(let i=1;i<rows.length;i++){
@@ -1568,6 +1626,11 @@ document.getElementById('btnAddMaterialDef').addEventListener('click', async ()=
   const remark = document.getElementById('mRemark').value.trim();
   if(!name){ showToast('請填寫包材名稱', true); return; }
   if((!isNaN(stock)&&stock<0) || (!isNaN(safety)&&safety<0) || (!isNaN(price)&&price<0)){ alertWarn('單價、剩餘量與安全庫存不能為負數'); return; }
+  const existingMaterial = state.materials.find(m=>m.name.trim().toLowerCase()===name.toLowerCase());
+  if(existingMaterial){
+    const proceed = confirm(`包材名稱「${name}」已經存在於資料庫中！\n\n按「確定」會新增一筆同名的新包材（可能造成重複資料）。\n按「取消」則不會新增，請改用表格中該筆資料的「編輯」按鈕修改既有內容。`);
+    if(!proceed){ showToast('已取消新增，請至表格找到「'+name+'」使用編輯功能'); return; }
+  }
   state.materials.push({
     id:uid(), name, spec, price:isNaN(price)?0:price, stock:isNaN(stock)?0:stock, safety:isNaN(safety)?0:safety, remark,
     createdAt: nowStr(), createdBy: currentUser.name,
@@ -1701,6 +1764,15 @@ document.getElementById('importMaterialFile').addEventListener('change', functio
     if(idx.name===-1){
       alertWarn('CSV 標題列找不到「包材名稱」欄位，請確認格式是否正確（建議先下載匯入範本比對）');
       e.target.value=''; return;
+    }
+    const dupNames = new Set();
+    for(let i=1;i<rows.length;i++){
+      const name = (rows[i][idx.name]||'').trim();
+      if(name && state.materials.some(m=>m.name===name)) dupNames.add(name);
+    }
+    if(dupNames.size>0){
+      const proceed = confirm(`本次匯入的資料中，有 ${dupNames.size} 筆包材名稱已存在於資料庫中：\n${[...dupNames].slice(0,10).join('、')}${dupNames.size>10?'...等':''}\n\n按「確定」將以匯入檔案內容更新這些既有包材資料（不會新增重複資料）。\n按「取消」則整個匯入動作都會停止。`);
+      if(!proceed){ showToast('已取消匯入'); e.target.value=''; return; }
     }
     let added=0, updated=0, skipped=0;
     const reasons = [];
@@ -2401,14 +2473,14 @@ function openEditMultiPackagingModal(id){
 /* ---------- Shipment / Packaging CSV ---------- */
 document.getElementById('btnExportShip').addEventListener('click', ()=>{
   const headers = ['日期','商品名稱','類型','數量','贈品明細(格式:名稱:數量;名稱:數量)','備註','填寫人','時間戳'];
-  const rows = state.shipments.map(r=>[r.date, r.productName, r.shipType==='ship'?'出貨':'退貨', r.qty, encodeGifts(r.gifts), r.remark||'', r.byName, r.timestamp]);
+  const rows = state.shipments.map(r=>[formatDateDisplay(r.date), r.productName, r.shipType==='ship'?'出貨':'退貨', r.qty, encodeGifts(r.gifts), r.remark||'', r.byName, r.timestamp]);
   downloadCSV('ecoco_出貨紀錄_'+todayStr()+'.csv', buildCSV(headers, rows));
   showToast('已匯出出貨紀錄 CSV');
 });
 document.getElementById('btnTemplateShip').addEventListener('click', ()=>{
   const headers = ['日期','商品名稱','類型(出貨/退貨)','數量','贈品明細(格式:名稱:數量;名稱:數量，選填)','備註'];
   const sampleName = state.products[0] ? state.products[0].name : '回收酒瓶';
-  const rows = [[todayStr(), sampleName, '出貨', '10', '', '範例資料，請刪除後依實際資料建立（商品名稱需與「商品設定」裡的名稱完全一致）']];
+  const rows = [[formatDateDisplay(todayStr()), sampleName, '出貨', '10', '', '範例資料，請刪除後依實際資料建立（商品名稱需與「商品設定」裡的名稱完全一致；日期格式請用 2026/07/29）']];
   downloadCSV('ecoco_出貨紀錄匯入範本.csv', buildCSV(headers, rows));
   showToast('已下載出貨紀錄匯入範本');
 });
@@ -2439,7 +2511,7 @@ document.getElementById('importShipFile').addEventListener('change', function(e)
     const suggestionMap = {};
     for(let i=1;i<rows.length;i++){
       const c = rows[i];
-      const date = (idx.date>=0 ? (c[idx.date]||'').trim() : '') || todayStr();
+      const date = normalizeDateForStorage(idx.date>=0 ? (c[idx.date]||'').trim() : '') || todayStr();
       const productName = (c[idx.productName]||'').trim();
       const typeText = idx.type>=0 ? (c[idx.type]||'').trim() : '';
       const qty = parseFloat(c[idx.qty]);
@@ -2509,16 +2581,16 @@ document.getElementById('btnExportMat').addEventListener('click', ()=>{
   const rows = state.packagingRecords.map(r=>{
     if(r.items && r.items.length){
       const label = r.items.map(it=>`${it.materialName}×${it.qty}`).join('；');
-      return [r.date, label, r.type==='in'?'入庫':'使用', r.totalAmount, r.remark||'', r.byName, r.timestamp];
+      return [formatDateDisplay(r.date), label, r.type==='in'?'入庫':'使用', r.totalAmount, r.remark||'', r.byName, r.timestamp];
     }
-    return [r.date, `${r.materialName}×${r.qty}`, r.type==='in'?'入庫':'使用', r.amount, r.remark||'', r.byName, r.timestamp];
+    return [formatDateDisplay(r.date), `${r.materialName}×${r.qty}`, r.type==='in'?'入庫':'使用', r.amount, r.remark||'', r.byName, r.timestamp];
   });
   downloadCSV('ecoco_包材紀錄_'+todayStr()+'.csv', buildCSV(headers, rows));
   showToast('已匯出包材紀錄 CSV');
 });
 document.getElementById('btnTemplateMat').addEventListener('click', ()=>{
   const headers = ['日期','包材名稱','類型(入庫/使用)','數量','金額(可留空自動計算)','備註'];
-  const rows = [[todayStr(),'紙箱A','使用','5','','範例資料，請刪除後依實際資料建立']];
+  const rows = [[formatDateDisplay(todayStr()),'紙箱A','使用','5','','範例資料，請刪除後依實際資料建立（日期格式請用 2026/07/29）']];
   downloadCSV('ecoco_包材紀錄匯入範本.csv', buildCSV(headers, rows));
   showToast('已下載包材紀錄匯入範本');
 });
@@ -2547,7 +2619,7 @@ document.getElementById('importMatFile').addEventListener('change', function(e){
     const reasons = [];
     for(let i=1;i<rows.length;i++){
       const c = rows[i];
-      const date = (idx.date>=0 ? (c[idx.date]||'').trim() : '') || todayStr();
+      const date = normalizeDateForStorage(idx.date>=0 ? (c[idx.date]||'').trim() : '') || todayStr();
       let materialName = (c[idx.materialName]||'').trim();
       // 若欄位內容是「包材明細」格式（例如「紙箱A（30x20cm）×5、氣泡布×1」）或含規格文字，只取第一項純名稱
       materialName = extractPlainMaterialName(materialName);
@@ -2627,7 +2699,7 @@ function fillShipmentTable(tableId, pagerId, fullList, editable, pagerKey){
   slice.forEach(r=>{
     const tr = document.createElement('tr');
     tr.setAttribute('data-rid', r.id);
-    tr.innerHTML = `<td>${r.date}</td><td>${escapeHtml(productDisplayLabel(r.productId, r.productName))}</td>
+    tr.innerHTML = `<td>${formatDateDisplay(r.date)}</td><td>${escapeHtml(productDisplayLabel(r.productId, r.productName))}</td>
       <td><span class="tag ${r.shipType}">${r.shipType==='ship'?'出貨':'退貨'}</span></td>
       <td>${fmtNum(r.qty)}</td>
       <td class="gift-text">${giftsLabel(r.gifts)}</td>
@@ -2689,7 +2761,7 @@ function fillMaterialTable(tableId, pagerId, fullList, editable, pagerKey){
     const isMulti = r.items && r.items.length;
     const itemsLabel = isMulti ? r.items.map(it=>`${escapeHtml(materialDisplayLabel(it.materialId, it.materialName))}×${fmtNum(it.qty)}`).join('、') : escapeHtml(materialDisplayLabel(r.materialId, r.materialName))+'×'+fmtNum(r.qty);
     const amount = isMulti ? r.totalAmount : r.amount;
-    tr.innerHTML = `<td>${r.date}</td>
+    tr.innerHTML = `<td>${formatDateDisplay(r.date)}</td>
       <td class="items-text">${itemsLabel}</td>
       <td><span class="tag ${r.type}">${r.type==='in'?'入庫':'使用'}</span></td>
       <td>${fmtMoney(amount)}</td>
