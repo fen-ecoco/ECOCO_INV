@@ -349,41 +349,45 @@
   <div class="view active" id="view-dashboard">
 
     <div class="card filter-card">
-      <div class="section-title" style="margin-top:0;">⏱ 時段設定（台灣時間 GMT+8）</div>
-      <div class="form-grid">
+      <div class="two-col">
         <div>
-          <label>快速選擇</label>
-          <select id="rangeMode">
-            <option value="today">今日</option>
-            <option value="week" selected>本週</option>
-            <option value="month">本月</option>
-            <option value="all">全部區間</option>
-            <option value="custom">自訂區間</option>
-          </select>
-          <div id="rangeModeHint" style="color:#9CA3AF;font-size:8pt;margin-top:4px;"></div>
+          <div class="section-title" style="margin-top:0;">⏱ 時段設定（台灣時間 GMT+8）</div>
+          <div class="form-grid">
+            <div>
+              <label>快速選擇</label>
+              <select id="rangeMode">
+                <option value="today">今日</option>
+                <option value="week" selected>本週</option>
+                <option value="month">本月</option>
+                <option value="all">全部區間</option>
+                <option value="custom">自訂區間</option>
+              </select>
+              <div id="rangeModeHint" style="color:#9CA3AF;font-size:8pt;margin-top:4px;"></div>
+            </div>
+            <div id="customStartWrap" style="display:none;"><label>起始日期</label><input type="date" id="rangeStart"></div>
+            <div id="customEndWrap" style="display:none;"><label>結束日期</label><input type="date" id="rangeEnd"></div>
+          </div>
         </div>
-        <div id="customStartWrap" style="display:none;"><label>起始日期</label><input type="date" id="rangeStart"></div>
-        <div id="customEndWrap" style="display:none;"><label>結束日期</label><input type="date" id="rangeEnd"></div>
-        <div><button class="btn" id="btnApplyRangeTime">套用篩選</button></div>
+        <div>
+          <div class="section-title" style="margin-top:0;">🔧 進階條件</div>
+          <div class="form-grid">
+            <div style="position:relative;">
+              <label>商品名稱（可多選）</label>
+              <input type="text" id="advProductInput" placeholder="🔍 輸入關鍵字搜尋商品" autocomplete="off">
+              <div class="multi-select-dropdown" id="advProductDropdown"></div>
+              <div class="mat-chip-list" id="advProductChips" style="margin-top:8px;"></div>
+            </div>
+            <div style="position:relative;">
+              <label>包材規格（可多選）</label>
+              <input type="text" id="advMaterialInput" placeholder="🔍 輸入關鍵字搜尋包材（如：破壞袋／紙箱）" autocomplete="off">
+              <div class="multi-select-dropdown" id="advMaterialDropdown"></div>
+              <div class="mat-chip-list" id="advMaterialChips" style="margin-top:8px;"></div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <div class="card filter-card">
-      <div class="section-title" style="margin-top:0;">🔧 進階條件</div>
-      <div class="form-grid">
-        <div style="position:relative;">
-          <label>商品名稱（可多選）</label>
-          <input type="text" id="advProductInput" placeholder="🔍 輸入關鍵字搜尋商品" autocomplete="off">
-          <div class="multi-select-dropdown" id="advProductDropdown"></div>
-          <div class="mat-chip-list" id="advProductChips" style="margin-top:8px;"></div>
-        </div>
-        <div style="position:relative;">
-          <label>包材規格（可多選）</label>
-          <input type="text" id="advMaterialInput" placeholder="🔍 輸入關鍵字搜尋包材（如：破壞袋／紙箱）" autocomplete="off">
-          <div class="multi-select-dropdown" id="advMaterialDropdown"></div>
-          <div class="mat-chip-list" id="advMaterialChips" style="margin-top:8px;"></div>
-        </div>
-        <div><button class="btn" id="btnApplyRange">套用篩選</button></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+        <button class="btn" id="btnApplyRange">套用篩選</button>
       </div>
       <div class="hint-line">💡 「商品名稱」「包材規格」篩選只會影響下方「出貨紀錄」「包材紀錄」表格的顯示內容，不會篩選商品／包材即時庫存卡片。</div>
     </div>
@@ -477,11 +481,11 @@
           <button type="button" class="copy-select-btn" id="btnCopyGiftProduct" title="複製目前選擇的商品名稱">📋</button>
           <input type="number" min="1" step="1" id="giftProductQty" placeholder="贈送數量（整數）">
           <button type="button" class="btn-outline" id="btnAddGiftRow">＋加入贈品</button>
+          <button class="btn" id="btnAddShipment">✓ 送出紀錄</button>
         </div>
         <div class="mat-chip-list" id="giftRowsList"></div>
       </div>
 
-      <div style="margin-top:16px;"><button class="btn" id="btnAddShipment">✓ 送出紀錄</button></div>
       <div class="preview-line" id="shipPreview">選擇商品並輸入數量</div>
       <div class="hint-line">💡 出貨（含贈品）送出後，系統會依商品與贈品的預設包材設定，彈出視窗讓你確認／調整後，把所有需要的包材<b>合併成一筆</b>包材使用紀錄；退貨不影響庫存也不支援贈品。匯入 CSV 為批次作業，不會逐筆彈出視窗，完成後會統一彙總彈出一次。</div>
 
@@ -1010,7 +1014,6 @@ function applyDashboardFilters(){
   renderAll();
 }
 document.getElementById('btnApplyRange').addEventListener('click', applyDashboardFilters);
-document.getElementById('btnApplyRangeTime').addEventListener('click', applyDashboardFilters);
 
 /* ---------- 進階條件：商品名稱／包材規格 多選搜尋下拉 ---------- */
 function renderMsDropdown(dropdownId, options){
@@ -1346,13 +1349,14 @@ document.getElementById('btnAddProduct').addEventListener('click', async ()=>{
   const stock = parseFloat(document.getElementById('pStock').value);
   const safety = parseFloat(document.getElementById('pSafety').value);
   const remark = document.getElementById('pRemark').value.trim();
-  if(!name || isNaN(stock)){ showToast('請完整填寫商品名稱與庫存', true); return; }
-  if(stock<0 || (!isNaN(safety) && safety<0)){ alertWarn('庫存量與安全庫存不能為負數'); return; }
+  if(!name){ showToast('請填寫商品名稱', true); return; }
   const existingProduct = state.products.find(p=>p.name.trim().toLowerCase()===name.toLowerCase());
   if(existingProduct){
     const proceed = confirm(`商品名稱「${name}」已經存在於資料庫中！\n\n按「確定」會新增一筆同名的新商品（可能造成重複資料）。\n按「取消」則不會新增，請改用表格中該筆資料的「編輯」按鈕修改既有內容。`);
     if(!proceed){ showToast('已取消新增，請至表格找到「'+name+'」使用編輯功能'); return; }
   }
+  if(isNaN(stock)){ showToast('請填寫目前庫存量', true); return; }
+  if(stock<0 || (!isNaN(safety) && safety<0)){ alertWarn('庫存量與安全庫存不能為負數'); return; }
   state.products.push({
     id:uid(), name, size, stock, safety: isNaN(safety)?0:safety, remark,
     materialUsages: newProductMaterials.map(r=>({materialId:r.materialId, perUnit:r.perUnit})),
@@ -1625,12 +1629,12 @@ document.getElementById('btnAddMaterialDef').addEventListener('click', async ()=
   const safety = parseFloat(document.getElementById('mSafety').value);
   const remark = document.getElementById('mRemark').value.trim();
   if(!name){ showToast('請填寫包材名稱', true); return; }
-  if((!isNaN(stock)&&stock<0) || (!isNaN(safety)&&safety<0) || (!isNaN(price)&&price<0)){ alertWarn('單價、剩餘量與安全庫存不能為負數'); return; }
   const existingMaterial = state.materials.find(m=>m.name.trim().toLowerCase()===name.toLowerCase());
   if(existingMaterial){
     const proceed = confirm(`包材名稱「${name}」已經存在於資料庫中！\n\n按「確定」會新增一筆同名的新包材（可能造成重複資料）。\n按「取消」則不會新增，請改用表格中該筆資料的「編輯」按鈕修改既有內容。`);
     if(!proceed){ showToast('已取消新增，請至表格找到「'+name+'」使用編輯功能'); return; }
   }
+  if((!isNaN(stock)&&stock<0) || (!isNaN(safety)&&safety<0) || (!isNaN(price)&&price<0)){ alertWarn('單價、剩餘量與安全庫存不能為負數'); return; }
   state.materials.push({
     id:uid(), name, spec, price:isNaN(price)?0:price, stock:isNaN(stock)?0:stock, safety:isNaN(safety)?0:safety, remark,
     createdAt: nowStr(), createdBy: currentUser.name,
